@@ -13,9 +13,9 @@ interface DeepMatrixVisualizationProps {
   connectionColor?: string;     // Target color for active connections (default: blue)
   cameraZoom?: number;          // Camera zoom factor
   rotationSpeed?: number;       // Speed of rotation (radians per frame)
-  lodDistanceThreshold?: number;// Distance at which points fade out of visibility
-  activationChance?: number     // Float chance of activation connection
-  fadeSpeed?: number            // Float speed at which a connection fades
+  lodDistanceThreshold?: number; // Distance beyond which connections are hidden
+  activationChance?: number;    // Chance to activate a connection each frame
+  fadeSpeed?: number;           // Speed at which connections fade in/out
 }
 
 /**
@@ -72,7 +72,7 @@ const DeepMatrixVisualization: React.FC<DeepMatrixVisualizationProps> = ({
       layerCount * layerSpacing * cameraZoom
     );
     camera.position.set(0, stackCount * stackSpacing * 0.6, cameraDistance);
-    camera.lookAt(0, 0, -layerCount * layerSpacing * 0.5);
+    camera.lookAt(new THREE.Vector3(0, 0, -layerCount * layerSpacing * 0.5)); // Ensure proper orientation
 
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(container.clientWidth, container.clientHeight);
@@ -156,7 +156,8 @@ const DeepMatrixVisualization: React.FC<DeepMatrixVisualizationProps> = ({
         currentLayer.forEach((start, t) => {
           const allOthers = [...Array(currentLayer.length).keys()].filter((o) => o !== t);
           for (let i = 0; i < maxConnectionsPerToken; i++) {
-            const end = currentLayer[allOthers[Math.floor(Math.random() * allOthers.length)]];
+            const randomIndex = Math.floor(Math.random() * allOthers.length);
+            const end = currentLayer[allOthers[randomIndex]];
             const points = [start.clone(), end.clone()];
             const geom = new THREE.BufferGeometry().setFromPoints(points);
 
@@ -187,7 +188,8 @@ const DeepMatrixVisualization: React.FC<DeepMatrixVisualizationProps> = ({
           currentLayer.forEach((start) => {
             const allOthers = [...Array(nextLayer.length).keys()];
             for (let i = 0; i < maxConnectionsPerToken; i++) {
-              const end = nextLayer[allOthers[Math.floor(Math.random() * allOthers.length)]];
+              const randomIndex = Math.floor(Math.random() * allOthers.length);
+              const end = nextLayer[allOthers[randomIndex]];
               const points = [start.clone(), end.clone()];
               const geom = new THREE.BufferGeometry().setFromPoints(points);
 
@@ -197,8 +199,8 @@ const DeepMatrixVisualization: React.FC<DeepMatrixVisualizationProps> = ({
                 opacity: 0.2,
               });
 
-              const line = new THREE.Line(geom, mat);                   
-              const center = new THREE.Vector3().addVectors(start, end).multiplyScalar(0.5); 
+              const line = new THREE.Line(geom, mat);
+              const center = new THREE.Vector3().addVectors(start, end).multiplyScalar(0.5);
 
               parentGroup.add(line);
 
@@ -215,13 +217,19 @@ const DeepMatrixVisualization: React.FC<DeepMatrixVisualizationProps> = ({
     }
 
     /**
-     * Animation Loop
+     * Animation Loop with LOD
      */
     function animate() {
       requestAnimationFrame(animate);
 
       // Rotate the parent group
       parentGroup.rotation.y += rotationSpeed;
+
+      // Update the camera frustum
+      camera.updateMatrixWorld();
+      const frustum = new THREE.Frustum();
+      const matrix = new THREE.Matrix4().multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
+      frustum.setFromProjectionMatrix(matrix);
 
       // Randomly activate connections
       connections.forEach((conn) => {
@@ -230,31 +238,26 @@ const DeepMatrixVisualization: React.FC<DeepMatrixVisualizationProps> = ({
         }
       });
 
-      // Update connections
+      // Apply LOD with Camera Frustum Culling and Update connections
       connections.forEach((conn) => {
+        const distance = camera.position.distanceTo(conn.center);
+        const isVisible = frustum.containsPoint(conn.center); // Check if inside view
+
+        // Debugging: Uncomment to log distance and visibility
+        // console.log('Distance:', distance, 'Threshold:', lodDistanceThreshold, 'Visible:', isVisible);
+
+        if (distance > lodDistanceThreshold || !isVisible) {
+          conn.line.visible = false; // Hide if too far or not in view
+        } else {
+          conn.line.visible = true; // Show closer connections
+
+          // Update activation only for visible connections
           const diff = conn.target - conn.activation;
           conn.activation += diff * fadeSpeed;
 
           if (conn.target === 1 && conn.activation > 0.99) {
             conn.target = 0;
           }
-
-        const mat = conn.line.material as THREE.LineBasicMaterial;
-        mat.color = colorFromActivation(conn.activation, connectionColor);
-        mat.opacity = 0.2 + 0.8 * conn.activation;
-      });
-
-      // apply lodDistanceThreshold
-      connections.forEach((conn) => {
-        const distance = camera.position.distanceTo(conn.center);
-
-        if (distance > lodDistanceThreshold) {
-          conn.line.visible = false; // Hide distant connections
-        } else {
-          conn.line.visible = true; // Show closer connections
-
-          const diff = conn.target - conn.activation;
-          conn.activation += diff * fadeSpeed;
 
           const mat = conn.line.material as THREE.LineBasicMaterial;
           mat.color = colorFromActivation(conn.activation, connectionColor);
@@ -282,7 +285,22 @@ const DeepMatrixVisualization: React.FC<DeepMatrixVisualizationProps> = ({
         container.removeChild(renderer.domElement);
       }
     };
-  }, [stackCount, layerCount, tokenCount, horizontalSpacing, verticalSpacing, stackSpacing, layerSpacing, maxConnectionsPerToken, connectionColor, cameraZoom, rotationSpeed, lodDistanceThreshold, activationChance, fadeSpeed]);
+  }, [
+    stackCount,
+    layerCount,
+    tokenCount,
+    horizontalSpacing,
+    verticalSpacing,
+    stackSpacing,
+    layerSpacing,
+    maxConnectionsPerToken,
+    connectionColor,
+    cameraZoom,
+    rotationSpeed,
+    lodDistanceThreshold,
+    activationChance,
+    fadeSpeed
+  ]);
 
   return <div ref={mountRef} style={{ width: '100%', height: '100vh', background: '#000' }} />;
 };

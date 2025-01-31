@@ -1,9 +1,8 @@
 'use client'
 
 import React  from 'react';
-import DeepMatrixVisualization from './components/DeepMatrixVisualization';
 import PulsingDownload from './components/PulsingDownload';
-
+import DeepMatrixVisualization from './components/DeepMatrixVisualization';
 
 const Home: React.FC = () => {
   return (

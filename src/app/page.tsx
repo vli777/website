@@ -2,7 +2,14 @@
 
 import React  from 'react';
 import PulsingDownload from './components/PulsingDownload';
-import DeepMatrixVisualization from './components/DeepMatrixVisualization';
+// import DeepMatrixVisualization from './components/DeepMatrixVisualization';
+import dynamic from 'next/dynamic';
+
+const DeepMatrixVisualization = dynamic(
+  () => import('./components/DeepMatrixVisualization'),
+  { ssr: false }
+);
+
 
 const Home: React.FC = () => {
   return (
@@ -22,18 +29,17 @@ const Home: React.FC = () => {
       <div className="relative md:w-1/2 h-1/2 md:h-full">
         <div className="absolute inset-0">
           <DeepMatrixVisualization
-            stackCount={2}
+            stackCount={1}
             layerCount={8}
             tokenCount={64}
             horizontalSpacing={64}
             verticalSpacing={64}
             stackSpacing={64}
             layerSpacing={64}
-            maxConnectionsPerToken={16}
+            maxConnectionsPerToken={8}
             connectionColor="blue"
-            cameraZoom={2.0}
+            cameraZoom={3.0}
             rotationSpeed={0.007}
-            lodDistanceThreshold={1337}
             activationChance={0.01}
             fadeSpeed={0.5}
           />

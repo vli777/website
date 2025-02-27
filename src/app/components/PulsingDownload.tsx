@@ -1,9 +1,13 @@
 import { Download } from "lucide-react"; 
 import { useEffect, useState } from "react";
+import { formatGoogleDriveLink } from "../helpers";
+
+const googleDriveShareLink = "https://drive.google.com/file/d/1iEN4P4HA0oOhXsd-oQCIjqZ5DN8upVel/view?usp=drive_link"
+const directDownloadLink = formatGoogleDriveLink(googleDriveShareLink);
 
 const PulsingDownload = () => {
   const [pulsing, setPulsing] = useState(true);
-  const [hovered, setHovered] = useState(false); 
+  const [hovered, setHovered] = useState(false);   
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -23,7 +27,7 @@ const PulsingDownload = () => {
       }}
     >
       <a
-        href="https://drive.google.com/uc?id=1_6vKuOfQ0d6FogO61L0bbonMW4J0d96p&export=download"
+        href={directDownloadLink}
         className={`group flex items-center justify-center bg-blue-600 transition-all duration-${hovered? 300: 700} ease-in-out rounded-full`}
         style={ hovered ? {
           width: "32px",

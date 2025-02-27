@@ -198,7 +198,7 @@ const DeepMatrixVisualization: React.FC<DeepMatrixVisualizationProps> = ({
     /**
      * Animation Loop (Rotating in Place)
      */
-    function animate() {
+    async function animate() {
       requestAnimationFrame(animate);
 
       // Rotate the entire parent group around its center (y-axis).
@@ -233,7 +233,7 @@ const DeepMatrixVisualization: React.FC<DeepMatrixVisualizationProps> = ({
         }
       });
 
-      renderer.render(scene, camera);
+      await renderer.renderAsync(scene, camera);
     }
 
     animate();
@@ -248,7 +248,8 @@ const DeepMatrixVisualization: React.FC<DeepMatrixVisualizationProps> = ({
     return () => {
       window.removeEventListener('resize', onResize);
       try {
-        if (renderer && typeof renderer.dispose === 'function') {
+        // Only dispose if the renderer's backend is not null
+        if (renderer && renderer.backend) {
           renderer.dispose();
         }
       } catch (error) {

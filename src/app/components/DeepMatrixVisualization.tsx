@@ -76,7 +76,15 @@ const DeepMatrixVisualization: React.FC<DeepMatrixVisualizationProps> = ({
     camera.position.set(0, 0, cameraDistance);
     camera.lookAt(new THREE.Vector3(0, 0, 0));
 
-    const renderer = new WebGPURenderer();
+    let renderer: WebGPURenderer | THREE.WebGLRenderer;
+
+    const isMobile = /Mobi|Android/i.test(navigator.userAgent);
+    if (navigator.gpu && !isMobile) {
+        renderer = new WebGPURenderer({ antialias: true });
+    } else {
+        renderer = new THREE.WebGLRenderer({ antialias: true });
+    }
+
     renderer.setSize(container.clientWidth, container.clientHeight);
     renderer.setPixelRatio(window.devicePixelRatio);
     container.appendChild(renderer.domElement);
@@ -163,6 +171,7 @@ const DeepMatrixVisualization: React.FC<DeepMatrixVisualizationProps> = ({
               transparent: true,
               opacity: 0.2,
             });
+            mat.needsUpdate = true;
             const line = new THREE.Line(geom, mat);
             const center = new THREE.Vector3().addVectors(start, end).multiplyScalar(0.5);
             parentGroup.add(line);
@@ -233,12 +242,17 @@ const DeepMatrixVisualization: React.FC<DeepMatrixVisualizationProps> = ({
         }
       });
 
-      await renderer.renderAsync(scene, camera);
+      if (renderer instanceof WebGPURenderer) {
+        await renderer.renderAsync(scene, camera);
+      } else if (renderer instanceof THREE.WebGLRenderer) {
+          renderer.render(scene, camera);
+      }
     }
 
     animate();
 
     const onResize = () => {
+      if (!renderer) return;
       renderer.setSize(container.clientWidth, container.clientHeight);
       camera.aspect = container.clientWidth / container.clientHeight;
       camera.updateProjectionMatrix();
@@ -249,8 +263,13 @@ const DeepMatrixVisualization: React.FC<DeepMatrixVisualizationProps> = ({
       window.removeEventListener('resize', onResize);
       try {
         // Only dispose if the renderer's backend is not null
-        if (renderer && renderer.backend) {
-          renderer.dispose();
+        if (renderer) {
+          if (renderer instanceof WebGPURenderer) {
+              renderer.dispose(); // WebGPU-specific disposal
+          } else if (renderer instanceof THREE.WebGLRenderer) {
+              renderer.forceContextLoss(); // Properly dispose of WebGL context
+              renderer.dispose();
+          }
         }
       } catch (error) {
         console.warn("Error during renderer disposal:", error);

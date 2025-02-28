@@ -1,8 +1,8 @@
 [
   {
-    "imageSrc": "/tsne cluster.png",
+    "imageSrc": "/umap cluster.png",
     "title": "Clustering",
-    "description": "t-SNE visualization of identified correlated asset clusters",
+    "description": "UMAP visualization of correlated asset clusters",
     "alignment": "center"
   },
   {

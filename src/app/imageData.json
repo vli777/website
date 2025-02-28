@@ -1,0 +1,9 @@
+[
+    { "imageSrc": "/tsne cluster.png", "title": "Clustering", "description": "t-SNE visualization of identified correlated asset clusters", "alignment": "center" },
+    { "imageSrc": "/anomaly detection.png", "title": "Anomaly Detection", "description": "Anomalies detected with a globally applied Isolation Forest", "alignment": "center" },
+    { "imageSrc": "/optimal zscore reversion parameters.png", "title": "Z-Score Mean Reversion", "description": "3D scatter plot of Optuna tuned rolling window and z-score threshold parameters", "alignment": "top left" },
+    { "imageSrc": "/optimization contour plot.png", "title": "Global Optimization", "description": "3D slice after PCA weights projection. Optimization search space via simulated annealing or stochastic diffusion", "alignment": "left" },
+    { "imageSrc": "/daily returns.jpg", "title": "Daily Returns Statistics", "description": "", "alignment": "right" },
+    { "imageSrc": "/cumulative returns.jpg", "title": "Cumulative Returns", "description": "", "alignment": "right" },
+    { "imageSrc": "/shap.png", "title": "SHAP Analysis", "description": "Example feature set containing indicators and price data used in a benchmark gradient boosting forecast model", "alignment": "right top" }
+]

@@ -8,7 +8,7 @@
   {
     "imageSrc": "/anomaly detection.png",
     "title": "Unsupervised Anomaly Detection",
-    "description": "Automated detection of anomalies using globally applied dynamically tuned parameters, without any manual threshold configuration",
+    "description": "Automated detection of anomalies using globally applied dynamically tuned parameters, without any manual threshold configuration needed",
     "alignment": "center"
   },
   {
@@ -20,13 +20,13 @@
   {
     "imageSrc": "/reversion.png",
     "title": "Z-Score Mean Reversion Signals",
-    "description": "Volatility-adjusted signal propagation through asset clusters allows comprehensive detection of reversion signals when a related source signal appears",
+    "description": "Volatility-adjusted signal propagation through asset clusters allows comprehensive detection of reversion signals whenever a related source signal appears",
     "alignment": "center"
   },
   {
     "imageSrc": "/optimization contour plot.png",
     "title": "Global Optimization",
-    "description": "3D slice after PCA weights projection. Optimization search space with optional constraints via annealing or stochastic diffusion",
+    "description": "3D slice after PCA weights projection. Optimization search space with optional constraints via simulated annealing or stochastic diffusion",
     "alignment": "left"
   },
   {

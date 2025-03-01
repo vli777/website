@@ -1,44 +1,56 @@
 [
   {
     "imageSrc": "/umap cluster.png",
-    "title": "Clustering",
-    "description": "UMAP visualization of correlated asset clusters",
+    "title": "Multi-level Clustering",
+    "description": "UMAP visualization of correlated asset clusters through multi-level hierarchical and nonlinear structure similarities vs single-level when using covriance/correlation matrices",
     "alignment": "center"
   },
   {
     "imageSrc": "/anomaly detection.png",
-    "title": "Anomaly Detection",
-    "description": "Anomalies detected with a globally applied Isolation Forest",
+    "title": "Unsupervised Anomaly Detection",
+    "description": "Automated detection of anomalies using globally applied dynamically tuned parameters, without any manual threshold configuration",
     "alignment": "center"
   },
   {
     "imageSrc": "/optimal zscore reversion parameters.png",
-    "title": "Z-Score Mean Reversion",
-    "description": "3D scatter plot of Optuna tuned rolling window and z-score threshold parameters",
+    "title": "Z-Score Reversion Hyperparameter Tuning",
+    "description": "3D scatter plot of Optuna optimal reversion windows and z-score threshold parameters",
     "alignment": "top left"
+  },
+  {
+    "imageSrc": "/reversion.png",
+    "title": "Z-Score Mean Reversion Signals",
+    "description": "Volatility-adjusted signal propagation through asset clusters allows comprehensive detection of reversion signals when a related source signal appears",
+    "alignment": "center"
   },
   {
     "imageSrc": "/optimization contour plot.png",
     "title": "Global Optimization",
-    "description": "3D slice after PCA weights projection. Optimization search space with optional constraints via simulated annealing and stochastic diffusion",
+    "description": "3D slice after PCA weights projection. Optimization search space with optional constraints via annealing or stochastic diffusion",
     "alignment": "left"
   },
   {
-    "imageSrc": "/daily returns.jpg",
+    "imageSrc": "/daily.png",
     "title": "Daily Returns Statistics",
-    "description": "",
+    "description": "Example set of portfolio holdings with daily returns boxplot statistics",
     "alignment": "right"
   },
   {
-    "imageSrc": "/cumulative returns.jpg",
+    "imageSrc": "/contributions.png",
+    "title": "Risk vs Return",
+    "description": "Example portfolio with risk and returns contribution breakdowns",
+    "alignment": "center"
+  },
+  {
+    "imageSrc": "/cumulative.png",
     "title": "Cumulative Returns",
-    "description": "",
+    "description": "Example portfolio highlighting period changes (3 mo. sampling in the image)",
     "alignment": "right"
   },
   {
     "imageSrc": "/shap.png",
     "title": "SHAP Analysis",
-    "description": "Example feature set containing indicators and price data used in a benchmark gradient boosting forecast model",
+    "description": "Example feature set containing indicators and price data used in a benchmark gradient boosting model",
     "alignment": "right top"
   }
 ]

@@ -15,7 +15,7 @@
     "imageSrc": "/optimal zscore reversion parameters.png",
     "title": "Z-Score Reversion Hyperparameter Tuning",
     "description": "3D scatter plot of Optuna optimal reversion windows and z-score threshold parameters",
-    "alignment": "top left"
+    "alignment": "center"
   },
   {
     "imageSrc": "/reversion.png",
@@ -27,19 +27,19 @@
     "imageSrc": "/optimization contour plot.png",
     "title": "Global Optimization",
     "description": "3D slice after PCA weights projection. Optimization search space with optional constraints via simulated annealing or stochastic diffusion",
-    "alignment": "left"
+    "alignment": "center"
   },
   {
     "imageSrc": "/daily.png",
     "title": "Daily Returns Statistics",
     "description": "Example set of portfolio holdings with daily returns boxplot statistics",
-    "alignment": "right"
+    "alignment": "center"
   },
   {
     "imageSrc": "/contributions.png",
     "title": "Risk vs Return",
     "description": "Example portfolio with risk and returns contribution breakdowns",
-    "alignment": "center"
+    "alignment": "right top"
   },
   {
     "imageSrc": "/cumulative.png",

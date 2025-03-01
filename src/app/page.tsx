@@ -22,7 +22,7 @@ const Home: React.FC = () => {
             <PulsingDownload />
           </div>
           <p className="text-md">
-            Full stack software engineer with 6+ years of React, TypeScript, and frontend expertise, complemented by backend development in Python FastAPI. I bring a strong foundation in machine learning, combining theoretical knowledge from over a year of dedicated study, graduate level statistics and quantitative finance, with hands-on experience applying ML/AI.
+            Full stack software engineer with 6+ years of React, TypeScript, and frontend expertise, complemented by backend development in Python FastAPI. I bring a strong foundation in machine learning, graduate level statistics and quantitative finance, with hands-on experience applying ML/AI towards real world solutions.
           </p>
         </div>
 

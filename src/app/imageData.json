@@ -1,8 +1,8 @@
 [
   {
-    "imageSrc": "/umap cluster.png",
+    "imageSrc": "/tsne cluster.png",
     "title": "Multi-level Clustering",
-    "description": "UMAP visualization of correlated asset clusters through multi-level hierarchical and nonlinear structure similarities vs single-level when using covriance/correlation matrices",
+    "description": "t-SNE visualization of correlated asset clusters through multi-level hierarchical and nonlinear structure similarities vs single-level when using covriance/correlation matrices",
     "alignment": "center"
   },
   {

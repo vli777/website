@@ -58,11 +58,5 @@
     "title": "SHAP Analysis",
     "description": "Example feature set containing indicators and price data used in a benchmark gradient boosting model",
     "alignment": "right top"
-  },
-  {
-    "imageSrc": "/bocpd.png",
-    "title": "Regime Detection",
-    "description": "Dynamically tuned Bayesian Online Changepoint Detection with adaptive hazard rate",
-    "alignment": "center"
   }
 ]

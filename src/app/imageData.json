@@ -26,7 +26,7 @@
   {
     "imageSrc": "/multi asset reversion.png",
     "title": "Multi-asset Statistical Arbitrage",
-    "description": "Z-score based reversion for a cointegrated basket of assets (or using cross-sectional score vs cluster mean)",
+    "description": "Z-score spread-based reversion for a cointegrated basket of assets (or using cross-sectional score vs cluster mean)",
     "alignment": "center"
   },
   {

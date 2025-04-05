@@ -26,13 +26,13 @@
   {
     "imageSrc": "/multi asset reversion.png",
     "title": "Multi-asset Statistical Arbitrage",
-    "description": "Z-score based reversion for a basket of assets",
+    "description": "Z-score based reversion for a cointegrated basket of assets (or using cross-sectional score vs cluster mean)",
     "alignment": "center"
   },
   {
     "imageSrc": "/optimization contour plot.png",
     "title": "Global Optimization",
-    "description": "3D slice after PCA weights projection. Optimization search space with optional constraints via simulated annealing or stochastic diffusion",
+    "description": "3D slice after PCA weights projection. Optimization search space with optional constraints e.g. CVaR, σ, via simulated annealing or stochastic diffusion",
     "alignment": "center"
   },
   {

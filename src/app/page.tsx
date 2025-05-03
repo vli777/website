@@ -42,10 +42,7 @@ const Home: React.FC = () => {
           </div>
           <p className="text-md">
             Full stack engineer with 6 yrs exp, React, TypeScript, and frontend expertise, complemented by backend development in Python and FastAPI. I bring a strong foundation in machine learning, statistics and quantitative finance, with hands-on experience applying ML/AI to fintech analytics, including unsupervised anomaly detection, multi-level clustering, hyperparameter tuning, optimization with SciPy, Pyomo, and stochastic diffusion.
-          </p>
-          <p className="text-md">
-            Outside of work, I enjoy cooking, swimming, and racket sports — I am ambidextrous in tennis and a long-time table tennis player. I am passionate about languages and culture, becoming fluent in Mandarin in five years, and am currently studying for the JLPT N3 after a year of lessons. I also have a lifelong curiosity for learning, with early exposure to college credit courses since 11 yrs old and studying multivariable calculus under Dr. Stephen Miller at Princeton University in 10th grade.
-          </p>
+          </p>          
         </div>
 
         {/* Desktop: Right Column with DeepMatrix Animation */}

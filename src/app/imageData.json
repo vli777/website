@@ -58,5 +58,11 @@
     "title": "SHAP Analysis",
     "description": "Example feature set containing indicators and price data used in a benchmark gradient boosting model",
     "alignment": "right top"
+  },
+  {
+    "imageSrc": "/code screenshot.png",
+    "title": "Source Code Screenshot",
+    "description": "Screenshot of project code from private repo",
+    "alignment": "center"
   }
 ]

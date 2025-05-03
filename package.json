@@ -2,7 +2,7 @@
   "name": "personal-website",
   "version": "0.1.0",
   "private": true,
-  "homepage": "website-theta-topaz.vercel.app",
+  "homepage": "https://lv-argo-vesta.vercel.app/",
   "scripts": {
     "dev": "next dev",
     "build": "next build",

@@ -34,8 +34,8 @@ const Home: React.FC = () => {
         <div className="absolute inset-0 -z-20 bg-black/60" />
 
         <div className="relative z-10 mx-auto flex w-full max-w-6xl flex-col gap-10 text-left sm:gap-12 md:flex-row md:items-center md:justify-between">
-          <div className="flex w-full flex-col gap-4 px-4 sm:gap-6 md:w-1/2 md:px-0">
-            <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:gap-4">
+          <div className="flex w-full flex-col gap-4 px-4 sm:gap-6 md:max-w-xl md:px-0">
+            <div className="flex items-center gap-0">
               <h1 className="text-4xl font-semibold tracking-tight text-white sm:text-5xl md:text-6xl">Vince Li</h1>
               <PulsingDownload />
             </div>
@@ -44,8 +44,8 @@ const Home: React.FC = () => {
             </p>
           </div>
 
-          <div className="pointer-events-none relative flex w-full shrink-0 justify-center md:w-1/2">
-            <div className="relative h-72 w-full sm:h-96 md:h-[28rem]">
+          <div className="relative z-40 flex w-full shrink-0 justify-center px-4 md:w-1/2 md:justify-end md:px-0">
+            <div className="h-72 w-72 sm:h-96 sm:w-96 md:h-[28rem] md:w-[28rem] md:sticky md:top-16">
               <DeepMatrixVisualization
                 stackCount={1}
                 layerCount={8}
@@ -57,7 +57,6 @@ const Home: React.FC = () => {
                 maxConnectionsPerToken={8}
                 connectionColor="blue"
                 cameraZoom={9.0}
-                rotationSpeed={0.007}
                 activationChance={0.01}
                 fadeSpeed={0.5}
               />
@@ -89,7 +88,5 @@ const Home: React.FC = () => {
     </div>
   );
 };
-
-
 
 export default Home;

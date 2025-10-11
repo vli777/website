@@ -35,7 +35,7 @@ export const ImageCard = (props: ImageCardProps) => {
           alt={title}
           fill
           priority={index === 0}
-          sizes="100vw"
+          sizes="(min-width: 640px) 50vw, 100vw"
           style={{ objectFit: "cover", objectPosition: alignment }}
         />
 

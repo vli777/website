@@ -1,6 +1,5 @@
 import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
-import { WebGPURenderer } from 'three/webgpu';
 
 interface DeepMatrixVisualizationProps {
   stackCount: number;           // Number of vertical stacks (Y-axis)
@@ -63,24 +62,12 @@ const DeepMatrixVisualization: React.FC<DeepMatrixVisualizationProps> = ({
     camera.position.set(0, 0, cameraDistance);
     camera.lookAt(new THREE.Vector3(0, 0, 0));
 
-    let renderer: WebGPURenderer | THREE.WebGLRenderer;
-
-    const isMobile = /Mobi|Android/i.test(navigator.userAgent);
-    if (navigator.gpu && !isMobile) {
-        renderer = new WebGPURenderer({ antialias: true, alpha: true });
-    } else {
-        renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-    }
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
 
     renderer.setSize(container.clientWidth, container.clientHeight);
     // Limit pixel ratio to reduce resource usage on high-DPI displays
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    if ('setClearColor' in renderer) {
-      (renderer as any).setClearColor(0x000000, 0);
-    }
-    if ('setClearAlpha' in renderer) {
-      (renderer as any).setClearAlpha(0);
-    }
+    renderer.setClearColor(0x000000, 0);
     renderer.domElement.style.background = 'transparent';
     container.appendChild(renderer.domElement);
 
@@ -315,11 +302,7 @@ const DeepMatrixVisualization: React.FC<DeepMatrixVisualizationProps> = ({
         colorAttribute.needsUpdate = true;
       }
 
-      if (renderer instanceof WebGPURenderer) {
-        await renderer.renderAsync(scene, camera);
-      } else if (renderer instanceof THREE.WebGLRenderer) {
-          renderer.render(scene, camera);
-      }
+      renderer.render(scene, camera);
     }
 
     animate();
@@ -341,14 +324,9 @@ const DeepMatrixVisualization: React.FC<DeepMatrixVisualizationProps> = ({
       pointsMaterial.dispose();
 
       try {
-        // Only dispose if the renderer's backend is not null
         if (renderer) {
-          if (renderer instanceof WebGPURenderer) {
-              renderer.dispose(); // WebGPU-specific disposal
-          } else if (renderer instanceof THREE.WebGLRenderer) {
-              renderer.forceContextLoss(); // Properly dispose of WebGL context
-              renderer.dispose();
-          }
+          renderer.forceContextLoss();
+          renderer.dispose();
         }
       } catch (error) {
         console.warn("Error during renderer disposal:", error);

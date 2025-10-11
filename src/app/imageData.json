@@ -1,8 +1,8 @@
 [
   {
-    "imageSrc": "/tsne cluster.png",
+    "imageSrc": "/tsne_cluster.png",
     "title": "Multi-level Clustering",
-    "description": "t-SNE visualization of correlated asset clusters through multi-level hierarchical and nonlinear structure similarities vs single-level when using covriance/correlation matrices",
+    "description": "t-SNE visualization of networked asset clusters through multi-level hierarchical and nonlinear structural similarities",
     "alignment": "center"
   },
   {
@@ -14,7 +14,7 @@
   {
     "imageSrc": "/optimization contour plot.png",
     "title": "Global Optimization",
-    "description": "3D slice after PCA weights projection. Optimization search space with optional constraints e.g. CVaR, \u03c3, via simulated annealing or stochastic diffusion",
+    "description": "3D slice after PCA weights projection. Optimization search space with optional constraints e.g. CVaR, \u03c3, stochastic diffusion",
     "alignment": "center"
   },
   {

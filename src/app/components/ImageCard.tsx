@@ -21,11 +21,14 @@ export const ImageCard = (props: ImageCardProps) => {
   const y = useTransform(scrollYProgress, [0, 1], ["10%", "-10%"]);
 
   return (
-    <div ref={ref} className="relative block w-full">
-      {/* Widescreen banner with aspect ratio */}
+    <div ref={ref} className="relative w-full">
+      {/* Banner fills entire grid cell */}
       <motion.div
-        className="relative flex w-full overflow-hidden min-h-[320px] sm:min-h-[360px] md:min-h-[420px]"
-        style={{ y }}
+        className="relative w-full overflow-hidden"
+        style={{
+          aspectRatio: '4 / 3',
+          y
+        }}
       >
         <Image
           src={imageSrc}

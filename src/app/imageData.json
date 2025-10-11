@@ -14,13 +14,7 @@
   {
     "imageSrc": "/optimization contour plot.png",
     "title": "Global Optimization",
-    "description": "3D slice after PCA weights projection. Optimization search space with optional constraints e.g. CVaR, σ, via simulated annealing or stochastic diffusion",
-    "alignment": "center"
-  },
-  {
-    "imageSrc": "/daily.png",
-    "title": "Daily Returns Statistics",
-    "description": "Example set of portfolio holdings with daily returns boxplot statistics",
+    "description": "3D slice after PCA weights projection. Optimization search space with optional constraints e.g. CVaR, \u03c3, via simulated annealing or stochastic diffusion",
     "alignment": "center"
   },
   {
@@ -28,6 +22,12 @@
     "title": "Risk vs Return",
     "description": "Example portfolio with risk and returns contribution breakdowns",
     "alignment": "right top"
+  },
+  {
+    "imageSrc": "/daily.png",
+    "title": "Daily Returns Statistics",
+    "description": "Example set of portfolio holdings with daily returns boxplot statistics",
+    "alignment": "center"
   },
   {
     "imageSrc": "/cumulative.png",

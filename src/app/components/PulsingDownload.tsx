@@ -1,25 +1,17 @@
-import { Download } from "lucide-react"; 
-import { useEffect, useState } from "react";
+import { Download } from "lucide-react";
+import { useState } from "react";
 import { formatGoogleDriveLink } from "../helpers";
 
 const googleDriveShareLink = "https://drive.google.com/file/d/1jEfASk8sQCZrtz1bBK_xuqGgT_l_Xcww/view?usp=sharing"
 const directDownloadLink = formatGoogleDriveLink(googleDriveShareLink);
 
 const PulsingDownload = () => {
-  const [pulsing, setPulsing] = useState(true);
-  const [hovered, setHovered] = useState(false);   
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setPulsing((prev) => !prev); 
-    }, 1000); 
-    return () => clearInterval(interval);
-  }, []);
+  const [hovered, setHovered] = useState(false);
 
   return (
     <div
       style={{
-        minWidth: "64px", 
+        minWidth: "64px",
         minHeight: "64px",
         display: "flex",
         alignItems: "center",
@@ -28,14 +20,14 @@ const PulsingDownload = () => {
     >
       <a
         href={directDownloadLink}
-        className={`group flex items-center justify-center bg-blue-600 transition-all duration-${hovered? 300: 700} ease-in-out rounded-full`}
-        style={ hovered ? {
-          width: "32px",
-          height: "32px",
-          padding: "6px"
-        }:{
-          width: pulsing ? "12px" : "16px", 
-          height: pulsing ? "12px" : "16px",
+        className={`group flex items-center justify-center bg-blue-600 transition-all ease-in-out rounded-full ${
+          hovered ? 'duration-300' : 'duration-150'
+        }`}
+        style={{
+          width: hovered ? "32px" : "14px",
+          height: hovered ? "32px" : "14px",
+          padding: hovered ? "6px" : "0",
+          animation: hovered ? 'none' : 'pulse-smooth 3s ease-in-out infinite',
         }}
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
@@ -45,6 +37,18 @@ const PulsingDownload = () => {
           className="w-0 h-0 opacity-0 transition-all duration-300 ease-in-out group-hover:w-8 group-hover:h-8 group-hover:opacity-100 text-white"
         />
       </a>
+      <style jsx>{`
+        @keyframes pulse-smooth {
+          0%, 100% {
+            transform: scale(1);
+            opacity: 1;
+          }
+          50% {
+            transform: scale(1.3);
+            opacity: 0.8;
+          }
+        }
+      `}</style>
     </div>
   );
 };

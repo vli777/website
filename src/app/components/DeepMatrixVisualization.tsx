@@ -18,18 +18,6 @@ interface DeepMatrixVisualizationProps {
   fadeSpeed?: number;           // Speed at which connections fade in/out
 }
 
-/**
- * Color interpolation: gray -> target color
- * @param activation Activation level (0..1)
- * @param connectionColor Target color for active connections
- * @returns Interpolated THREE.Color
- */
-function colorFromActivation(activation: number, connectionColor: string): THREE.Color {
-  const gray = 0.6; // Base gray level (0..1)
-  const targetColor = new THREE.Color(connectionColor);
-  const grayColor = new THREE.Color(gray, gray, gray);
-  return grayColor.lerp(targetColor, activation);
-}
 
 const DeepMatrixVisualization: React.FC<DeepMatrixVisualizationProps> = ({
   stackCount,
@@ -56,7 +44,6 @@ const DeepMatrixVisualization: React.FC<DeepMatrixVisualizationProps> = ({
      * Scene, Camera, Renderer
      */
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x000000); // Black background
 
     // Compute offsets so that tokens are centered in the group.
     const offsetY = (stackCount - 1) * stackSpacing / 2;
@@ -80,13 +67,21 @@ const DeepMatrixVisualization: React.FC<DeepMatrixVisualizationProps> = ({
 
     const isMobile = /Mobi|Android/i.test(navigator.userAgent);
     if (navigator.gpu && !isMobile) {
-        renderer = new WebGPURenderer({ antialias: true });
+        renderer = new WebGPURenderer({ antialias: true, alpha: true });
     } else {
-        renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     }
 
     renderer.setSize(container.clientWidth, container.clientHeight);
-    renderer.setPixelRatio(window.devicePixelRatio);
+    // Limit pixel ratio to reduce resource usage on high-DPI displays
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    if ('setClearColor' in renderer) {
+      (renderer as any).setClearColor(0x000000, 0);
+    }
+    if ('setClearAlpha' in renderer) {
+      (renderer as any).setClearAlpha(0);
+    }
+    renderer.domElement.style.background = 'transparent';
     container.appendChild(renderer.domElement);
 
     // Lighting
@@ -108,9 +103,10 @@ const DeepMatrixVisualization: React.FC<DeepMatrixVisualizationProps> = ({
     const cols = Math.ceil(tokenCount / rows);
 
     const allTokenPositions: THREE.Vector3[][][] = []; // [stack][layer][token]
+    const allPointsObjects: THREE.Points[] = []; // Keep track of Points objects for size animation
     const pointsMaterial = new THREE.PointsMaterial({
       color: 0xffffff, // White points
-      size: 1,         // Smaller size for a "pixel" appearance
+      size: 0.2,       // Smaller default max size
     });
 
     for (let stackIndex = 0; stackIndex < stackCount; stackIndex++) {
@@ -139,20 +135,24 @@ const DeepMatrixVisualization: React.FC<DeepMatrixVisualizationProps> = ({
         const geometry = new THREE.BufferGeometry().setFromPoints(layer);
         const points = new THREE.Points(geometry, pointsMaterial);
         parentGroup.add(points);
+        allPointsObjects.push(points);
       })
     );
 
     /**
-     * Build Connections (Intra- and Inter-Layer)
+     * Build Connections (Intra- and Inter-Layer) - OPTIMIZED
+     * Use batched LineSegments instead of individual Line objects
      */
     type Connection = {
-      line: THREE.Line<THREE.BufferGeometry, THREE.LineBasicMaterial>;
+      index: number;        // Position in the batched geometry
       center: THREE.Vector3;
       activation: number;
       target: number;
     };
 
     const connections: Connection[] = [];
+    const allConnectionPoints: THREE.Vector3[] = [];
+    const allConnectionColors: number[] = [];
 
     for (const stack of allTokenPositions) {
       for (let layerIndex = 0; layerIndex < stack.length; layerIndex++) {
@@ -164,18 +164,14 @@ const DeepMatrixVisualization: React.FC<DeepMatrixVisualizationProps> = ({
           for (let i = 0; i < maxConnectionsPerToken; i++) {
             const randomIndex = Math.floor(Math.random() * allOthers.length);
             const end = currentLayer[allOthers[randomIndex]];
-            const points = [start.clone(), end.clone()];
-            const geom = new THREE.BufferGeometry().setFromPoints(points);
-            const mat = new THREE.LineBasicMaterial({
-              color: 0x808080,
-              transparent: true,
-              opacity: 0.2,
-            });
-            mat.needsUpdate = true;
-            const line = new THREE.Line(geom, mat);
+
             const center = new THREE.Vector3().addVectors(start, end).multiplyScalar(0.5);
-            parentGroup.add(line);
-            connections.push({ line, center, activation: 0, target: 0 });
+            const index = allConnectionPoints.length / 2;
+
+            allConnectionPoints.push(start.clone(), end.clone());
+            allConnectionColors.push(0.6, 0.6, 0.6, 0.6, 0.6, 0.6); // Gray for both vertices
+
+            connections.push({ index, center, activation: 0, target: 0 });
           }
         });
 
@@ -187,60 +183,137 @@ const DeepMatrixVisualization: React.FC<DeepMatrixVisualizationProps> = ({
             for (let i = 0; i < maxConnectionsPerToken; i++) {
               const randomIndex = Math.floor(Math.random() * allOthers.length);
               const end = nextLayer[allOthers[randomIndex]];
-              const points = [start.clone(), end.clone()];
-              const geom = new THREE.BufferGeometry().setFromPoints(points);
-              const mat = new THREE.LineBasicMaterial({
-                color: 0x808080,
-                transparent: true,
-                opacity: 0.2,
-              });
-              const line = new THREE.Line(geom, mat);
+
               const center = new THREE.Vector3().addVectors(start, end).multiplyScalar(0.5);
-              parentGroup.add(line);
-              connections.push({ line, center, activation: 0, target: 0 });
+              const index = allConnectionPoints.length / 2;
+
+              allConnectionPoints.push(start.clone(), end.clone());
+              allConnectionColors.push(0.6, 0.6, 0.6, 0.6, 0.6, 0.6); // Gray for both vertices
+
+              connections.push({ index, center, activation: 0, target: 0 });
             }
           });
         }
       }
     }
 
+    // Create a single batched LineSegments object
+    const lineGeometry = new THREE.BufferGeometry().setFromPoints(allConnectionPoints);
+    const colorArray = new Float32Array(allConnectionColors);
+    lineGeometry.setAttribute('color', new THREE.BufferAttribute(colorArray, 3));
+
+    const lineMaterial = new THREE.LineBasicMaterial({
+      vertexColors: true,
+      transparent: true,
+      opacity: 0.6,
+    });
+
+    const lineSegments = new THREE.LineSegments(lineGeometry, lineMaterial);
+    parentGroup.add(lineSegments);
+
     /**
-     * Animation Loop (Rotating in Place)
+     * Animation Loop (Rotating in Place) - OPTIMIZED + DYNAMIC SIZE + MULTI-AXIS ROTATION
      */
+    const colorAttribute = lineGeometry.getAttribute('color') as THREE.BufferAttribute;
+    const targetColorObj = new THREE.Color(connectionColor);
+    const grayColorObj = new THREE.Color(0.6, 0.6, 0.6);
+
+    // Throttle activation checks (only check a subset each frame)
+    let activationCheckIndex = 0;
+    const activationsPerFrame = Math.max(1, Math.floor(connections.length / 10));
+
+    // Random size pulsing for each point group (0.2 max, can shrink to 0.033 - 6x smaller)
+    const pointSizeData = allPointsObjects.map(() => ({
+      currentSize: 0.2,
+      targetSize: Math.random() * 0.167 + 0.033, // Random target between 0.033 (6x smaller) and 0.2 (max)
+      pulseSpeed: Math.random() * 0.05 + 0.02, // Random speed
+      nextChangeTime: Math.random() * 2000 + 1000, // Random time until next target change
+    }));
+
+    // Multi-axis rotation speeds with variation
+    const rotationSpeeds = {
+      x: rotationSpeed * (Math.random() * 1.5 + 0.3), // 30-180% of main rotation
+      y: rotationSpeed * (Math.random() * 1.5 + 0.3), // 30-180% of main rotation
+      z: rotationSpeed * (Math.random() * 1.5 + 0.3), // 30-180% of main rotation
+    };
+
+    let lastTime = Date.now();
+
     async function animate() {
       requestAnimationFrame(animate);
 
-      // Rotate the entire parent group around its center (y-axis).
-      parentGroup.rotation.y += rotationSpeed;
+      const currentTime = Date.now();
+      const deltaTime = currentTime - lastTime;
+      lastTime = currentTime;
 
-      // Update camera frustum
-      camera.updateMatrixWorld();
-      const frustum = new THREE.Frustum();
-      const matrix = new THREE.Matrix4().multiplyMatrices(
-        camera.projectionMatrix,
-        camera.matrixWorldInverse
-      );
-      frustum.setFromProjectionMatrix(matrix);
+      // Multi-axis rotation for more dynamic movement
+      parentGroup.rotation.x += rotationSpeeds.x;
+      parentGroup.rotation.y += rotationSpeeds.y;
+      parentGroup.rotation.z += rotationSpeeds.z;
 
-      // Activate and update connections
-      connections.forEach((conn) => {
+      // Randomly change rotation speed and direction occasionally for all axes
+      if (Math.random() < 0.001) {
+        rotationSpeeds.x = rotationSpeed * (Math.random() * 1.5 + 0.3) * (Math.random() > 0.5 ? 1 : -1);
+      }
+      if (Math.random() < 0.001) {
+        rotationSpeeds.y = rotationSpeed * (Math.random() * 1.5 + 0.3) * (Math.random() > 0.5 ? 1 : -1);
+      }
+      if (Math.random() < 0.001) {
+        rotationSpeeds.z = rotationSpeed * (Math.random() * 1.5 + 0.3) * (Math.random() > 0.5 ? 1 : -1);
+      }
+
+      // Animate point sizes (pulsing effect)
+      allPointsObjects.forEach((pointsObj, index) => {
+        const data = pointSizeData[index];
+
+        // Smoothly transition to target size
+        const diff = data.targetSize - data.currentSize;
+        if (Math.abs(diff) > 0.001) {
+          data.currentSize += diff * data.pulseSpeed;
+          (pointsObj.material as THREE.PointsMaterial).size = data.currentSize;
+        }
+
+        // Check if it's time to pick a new target size
+        data.nextChangeTime -= deltaTime;
+        if (data.nextChangeTime <= 0) {
+          data.targetSize = Math.random() * 0.167 + 0.033; // New target between 0.033 (6x smaller) and 0.2
+          data.nextChangeTime = Math.random() * 3000 + 1000; // 1-4 seconds
+        }
+      });
+
+      // Randomly activate a subset of connections each frame
+      for (let i = 0; i < activationsPerFrame; i++) {
+        const conn = connections[activationCheckIndex];
         if (conn.activation < 0.01 && Math.random() < activationChance) {
           conn.target = 1;
         }
-        if (frustum.containsPoint(conn.center)) {
-          conn.line.visible = true;
-          const diff = conn.target - conn.activation;
+        activationCheckIndex = (activationCheckIndex + 1) % connections.length;
+      }
+
+      // Update all connection colors in the buffer
+      let needsUpdate = false;
+      connections.forEach((conn) => {
+        const diff = conn.target - conn.activation;
+        if (Math.abs(diff) > 0.001) {
           conn.activation += diff * fadeSpeed;
           if (conn.target === 1 && conn.activation > 0.99) {
             conn.target = 0;
           }
-          const mat = conn.line.material as THREE.LineBasicMaterial;
-          mat.color = colorFromActivation(conn.activation, connectionColor);
-          mat.opacity = 0.2 + 0.8 * conn.activation;
-        } else {
-          conn.line.visible = false;
+
+          // Interpolate color
+          const color = grayColorObj.clone().lerp(targetColorObj, conn.activation);
+
+          // Update both vertices of this line segment
+          colorAttribute.setXYZ(conn.index * 2, color.r, color.g, color.b);
+          colorAttribute.setXYZ(conn.index * 2 + 1, color.r, color.g, color.b);
+
+          needsUpdate = true;
         }
       });
+
+      if (needsUpdate) {
+        colorAttribute.needsUpdate = true;
+      }
 
       if (renderer instanceof WebGPURenderer) {
         await renderer.renderAsync(scene, camera);
@@ -261,6 +334,12 @@ const DeepMatrixVisualization: React.FC<DeepMatrixVisualizationProps> = ({
 
     return () => {
       window.removeEventListener('resize', onResize);
+
+      // Dispose of geometries and materials
+      lineGeometry.dispose();
+      lineMaterial.dispose();
+      pointsMaterial.dispose();
+
       try {
         // Only dispose if the renderer's backend is not null
         if (renderer) {
@@ -295,7 +374,7 @@ const DeepMatrixVisualization: React.FC<DeepMatrixVisualizationProps> = ({
     fadeSpeed
   ]);
 
-  return <div ref={mountRef} style={{ width: '100%', height: '100vh', background: '#000' }} />;
+  return <div ref={mountRef} style={{ width: '100%', height: '100%', background: 'transparent' }} />;
 };
 
 export default DeepMatrixVisualization;

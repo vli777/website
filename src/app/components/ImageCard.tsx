@@ -1,53 +1,77 @@
 import { motion, useScroll, useTransform } from "framer-motion";
+import { useRef } from "react";
+import Image from "next/image";
 
 interface ImageCardProps {
   imageSrc: string;
   title: string;
   description?: string;
-  alignment?: string; // Any valid CSS object-position value, e.g. "20% 50%", "center", "top right", etc.
+  alignment?: string;
   index: number;
 }
 
 export const ImageCard = (props: ImageCardProps) => {
   const { imageSrc, title, description, alignment = "center", index } = props;
-  const { scrollY } = useScroll();
+  const ref = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({
+    target: ref,
+    offset: ["start end", "end start"]
+  });
 
-  // Parallax effect
-  const y = useTransform(scrollY, [0, 1000], ["20%", "0%"]);
-  
-  // Scale down the image slightly to avoid excessive zoom-out
-  const scale = useTransform(scrollY, [0, 1000], [1, 0.95]);
-
-  // Container stagger: even-indexed cards align left, odd-indexed align right on desktop
-  const isImageLeft = index % 2 === 0;
+  // Apple-style smooth parallax - subtle movement
+  const y = useTransform(scrollYProgress, [0, 1], ["10%", "-10%"]);
 
   return (
-    <motion.div
-      className={`relative h-[800px] w-full md:w-[90%] flex flex-col md:flex-row items-center gap-8 ${isImageLeft ? "md:mr-auto md:flex-row" : "md:ml-auto md:flex-row-reverse"}`}
-      whileInView={{ opacity: 1 }}
-      initial={{ opacity: 0 }}
-      transition={{ duration: 0.8, ease: "easeOut" }}
-      viewport={{ once: true, amount: 0.2 }}
+    <div
+      ref={ref}
+      className="snap-start md:snap-align-none relative w-full flex items-center justify-center"
     >
-      {/* Image with Parallax and Minimal Zoom-Out Effect */}
-      <motion.div className="relative w-full h-full overflow-hidden rounded-2xl md:rounded-[32px]">
-        <motion.img
-          src={imageSrc}
-          className="absolute top-0 left-0 w-full h-full object-cover rounded-2xl md:rounded-[32px]"
-          style={{ y, scale, objectPosition: alignment }}
-        />
-        {/* Text Overlay on Mobile with Extra Bottom Padding */}
-        <div className="absolute bottom-0 left-0 w-full p-4 pb-8 bg-black bg-opacity-50 text-white md:hidden rounded-b-2xl">
-          <h2 className="text-lg font-bold">{title}</h2>
-          {description && <p className="text-xs mt-2">{description}</p>}
+      {/* Widescreen banner with aspect ratio */}
+      <motion.div
+        className="relative w-full overflow-hidden"
+        style={{
+          aspectRatio: "21/9",
+          y
+        }}
+      >
+          <Image
+            src={imageSrc}
+            alt={title}
+            fill
+            priority={index === 0}
+            sizes="100vw"
+            style={{ objectFit: "cover", objectPosition: alignment }}
+          />
+
+        {/* Gradient overlay for better text readability */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/30 to-black/50" />
+
+        {/* Centered text overlay with Apple-style typography */}
+        <div className="absolute inset-0 flex items-center justify-center z-10 text-center text-white px-8">
+          <div className="max-w-4xl">
+            <motion.h2
+              className="text-3xl md:text-5xl font-semibold mb-3 tracking-tight"
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.2 }}
+              viewport={{ once: true }}
+            >
+              {title}
+            </motion.h2>
+            {description && (
+              <motion.p
+                className="text-base md:text-xl font-normal text-gray-200"
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: 0.4 }}
+                viewport={{ once: true }}
+              >
+                {description}
+              </motion.p>
+            )}
+          </div>
         </div>
       </motion.div>
-
-      {/* Text Positioned on the Opposite Side for Desktop */}
-      <div className="hidden md:flex flex-col w-1/3 p-4 md:px-8 bg-black bg-opacity-50 text-white rounded-2xl md:rounded-[32px] space-y-2">
-        <h2 className="text-lg md:text-xl font-bold">{title}</h2>
-        {description && <p className="text-xs md:text-sm mt-2">{description}</p>}
-      </div>
-    </motion.div>
+    </div>
   );
 };

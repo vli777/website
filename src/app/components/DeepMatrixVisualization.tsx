@@ -12,9 +12,14 @@ interface DeepMatrixVisualizationProps {
   maxConnectionsPerToken?: number; // Limit on connections for each token
   connectionColor?: string;     // Target color for active connections (default: blue)
   cameraZoom?: number;          // Camera zoom factor
-  rotationSpeed?: number;       // Speed of rotation (radians per frame)
   activationChance?: number;    // Chance to activate a connection each frame
   fadeSpeed?: number;           // Speed at which connections fade in/out
+  interactionSensitivity?: number; // Multiplier for pointer movement -> rotation velocity
+  dragDamping?: number;         // Per-frame damping factor while dragging
+  inertiaDecay?: number;        // Per-frame damping once released
+  maxRotationVelocity?: number; // Clamp for rotation velocity magnitude
+  autoRotationSpeed?: number;   // Base speed for autonomous rotation
+  autoRotationJitter?: number;  // Random variation applied over time
 }
 
 
@@ -29,9 +34,14 @@ const DeepMatrixVisualization: React.FC<DeepMatrixVisualizationProps> = ({
   maxConnectionsPerToken = 4,
   connectionColor = '#0000ff', // Default blue
   cameraZoom = 1.5, // Camera zoom factor
-  rotationSpeed = 0.001, // Rotation speed (radians per frame)
   activationChance = 0.002,
-  fadeSpeed = 0.05
+  fadeSpeed = 0.05,
+  interactionSensitivity = 0.21,
+  dragDamping = 0.94,
+  inertiaDecay = 0.995,
+  maxRotationVelocity = 0.2,
+  autoRotationSpeed = 0.004,
+  autoRotationJitter = 0.0008
 }) => {
   const mountRef = useRef<HTMLDivElement | null>(null);
 
@@ -217,14 +227,54 @@ const DeepMatrixVisualization: React.FC<DeepMatrixVisualizationProps> = ({
       nextChangeTime: Math.random() * 2000 + 1000, // Random time until next target change
     }));
 
-    // Multi-axis rotation speeds with variation
-    const rotationSpeeds = {
-      x: rotationSpeed * (Math.random() * 1.5 + 0.3), // 30-180% of main rotation
-      y: rotationSpeed * (Math.random() * 1.5 + 0.3), // 30-180% of main rotation
-      z: rotationSpeed * (Math.random() * 1.5 + 0.3), // 30-180% of main rotation
+    // Interactive rotation state (mouse-driven with inertia)
+    const rotationVelocity = new THREE.Vector3(0, 0, 0);
+    const lastPointer = new THREE.Vector2();
+    let isDragging = false;
+    const rotationClamp = Math.PI / 2;
+
+    container.style.cursor = 'grab';
+    container.style.touchAction = 'none';
+
+    const updateRotationVelocity = (deltaX: number, deltaY: number) => {
+      rotationVelocity.x = THREE.MathUtils.clamp(rotationVelocity.x + deltaY, -maxRotationVelocity, maxRotationVelocity);
+      rotationVelocity.y = THREE.MathUtils.clamp(rotationVelocity.y + deltaX, -maxRotationVelocity, maxRotationVelocity);
     };
 
+    const handlePointerDown = (event: PointerEvent) => {
+      isDragging = true;
+      lastPointer.set(event.clientX, event.clientY);
+      container.style.cursor = 'grabbing';
+    };
+
+    const handlePointerMove = (event: PointerEvent) => {
+      if (!isDragging) return;
+      const deltaX = (event.clientX - lastPointer.x) * interactionSensitivity;
+      const deltaY = (event.clientY - lastPointer.y) * interactionSensitivity;
+      lastPointer.set(event.clientX, event.clientY);
+      updateRotationVelocity(deltaX, deltaY);
+    };
+
+    const handlePointerUp = () => {
+      if (!isDragging) return;
+      isDragging = false;
+      container.style.cursor = 'grab';
+    };
+
+    container.addEventListener('pointerdown', handlePointerDown);
+    window.addEventListener('pointermove', handlePointerMove, { passive: true });
+    window.addEventListener('pointerup', handlePointerUp, { passive: true });
+    window.addEventListener('pointercancel', handlePointerUp, { passive: true });
+
     let lastTime = Date.now();
+
+    const autoRotation = new THREE.Vector3(
+      autoRotationSpeed * (Math.random() * 0.6 + 0.7),
+      autoRotationSpeed * (Math.random() * 0.8 + 0.6),
+      autoRotationSpeed * (Math.random() * 0.5 + 0.35)
+    );
+    let targetAutoRotation = autoRotation.clone();
+    const autoRotationLerp = 0.02;
 
     async function animate() {
       requestAnimationFrame(animate);
@@ -232,21 +282,35 @@ const DeepMatrixVisualization: React.FC<DeepMatrixVisualizationProps> = ({
       const currentTime = Date.now();
       const deltaTime = currentTime - lastTime;
       lastTime = currentTime;
+      const deltaSeconds = deltaTime / 1000;
+      const frameFactor = Math.min(deltaSeconds * 60, 3);
 
-      // Multi-axis rotation for more dynamic movement
-      parentGroup.rotation.x += rotationSpeeds.x;
-      parentGroup.rotation.y += rotationSpeeds.y;
-      parentGroup.rotation.z += rotationSpeeds.z;
+      // Update autonomous rotation target occasionally
+      if (Math.random() < 0.01) {
+        targetAutoRotation.set(
+          autoRotationSpeed * (1 + (Math.random() - 0.5) * autoRotationJitter * 30),
+          autoRotationSpeed * 1.2 * (1 + (Math.random() - 0.5) * autoRotationJitter * 30),
+          autoRotationSpeed * 0.8 * (1 + (Math.random() - 0.5) * autoRotationJitter * 30)
+        );
+      }
+      autoRotation.lerp(targetAutoRotation, autoRotationLerp * frameFactor);
 
-      // Randomly change rotation speed and direction occasionally for all axes
-      if (Math.random() < 0.001) {
-        rotationSpeeds.x = rotationSpeed * (Math.random() * 1.5 + 0.3) * (Math.random() > 0.5 ? 1 : -1);
-      }
-      if (Math.random() < 0.001) {
-        rotationSpeeds.y = rotationSpeed * (Math.random() * 1.5 + 0.3) * (Math.random() > 0.5 ? 1 : -1);
-      }
-      if (Math.random() < 0.001) {
-        rotationSpeeds.z = rotationSpeed * (Math.random() * 1.5 + 0.3) * (Math.random() > 0.5 ? 1 : -1);
+      // Apply rotation velocity with damping/inertia plus autonomous rotation
+      parentGroup.rotation.x = THREE.MathUtils.clamp(
+        parentGroup.rotation.x + (rotationVelocity.x + autoRotation.x) * frameFactor,
+        -rotationClamp,
+        rotationClamp
+      );
+      parentGroup.rotation.y += (rotationVelocity.y + autoRotation.y) * frameFactor;
+      parentGroup.rotation.z += (rotationVelocity.z + autoRotation.z) * frameFactor;
+
+      if (isDragging) {
+        rotationVelocity.multiplyScalar(dragDamping);
+      } else {
+        rotationVelocity.multiplyScalar(inertiaDecay);
+        if (rotationVelocity.lengthSq() < 1e-6) {
+          rotationVelocity.set(0, 0);
+        }
       }
 
       // Animate point sizes (pulsing effect)
@@ -317,6 +381,13 @@ const DeepMatrixVisualization: React.FC<DeepMatrixVisualizationProps> = ({
 
     return () => {
       window.removeEventListener('resize', onResize);
+      container.removeEventListener('pointerdown', handlePointerDown);
+      window.removeEventListener('pointermove', handlePointerMove);
+      window.removeEventListener('pointerup', handlePointerUp);
+      window.removeEventListener('pointercancel', handlePointerUp);
+
+      rotationVelocity.set(0, 0, 0);
+      autoRotation.set(0, 0, 0);
 
       // Dispose of geometries and materials
       lineGeometry.dispose();
@@ -347,9 +418,14 @@ const DeepMatrixVisualization: React.FC<DeepMatrixVisualizationProps> = ({
     maxConnectionsPerToken,
     connectionColor,
     cameraZoom,
-    rotationSpeed,
     activationChance,
-    fadeSpeed
+    fadeSpeed,
+    interactionSensitivity,
+    dragDamping,
+    inertiaDecay,
+    maxRotationVelocity,
+    autoRotationSpeed,
+    autoRotationJitter
   ]);
 
   return <div ref={mountRef} style={{ width: '100%', height: '100%', background: 'transparent' }} />;

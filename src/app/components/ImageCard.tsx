@@ -1,5 +1,4 @@
-import { motion, useScroll, useTransform } from "framer-motion";
-import { useRef } from "react";
+import { motion } from "framer-motion";
 import Image from "next/image";
 
 interface ImageCardProps {
@@ -12,24 +11,11 @@ interface ImageCardProps {
 
 export const ImageCard = (props: ImageCardProps) => {
   const { imageSrc, title, description, alignment = "center", index } = props;
-  const ref = useRef<HTMLDivElement>(null);
-  const { scrollYProgress } = useScroll({
-    target: ref,
-    offset: ["start end", "end start"]
-  });
-
-  const y = useTransform(scrollYProgress, [0, 1], ["10%", "-10%"]);
 
   return (
-    <div ref={ref} className="relative w-full">
+    <div className="relative w-full h-full overflow-hidden">
       {/* Banner fills entire grid cell */}
-      <motion.div
-        className="relative w-full overflow-hidden"
-        style={{
-          aspectRatio: '4 / 3',
-          y
-        }}
-      >
+      <div className="relative w-full h-full">
         <Image
           src={imageSrc}
           alt={title}
@@ -67,7 +53,7 @@ export const ImageCard = (props: ImageCardProps) => {
             )}
           </div>
         </div>
-      </motion.div>
+      </div>
     </div>
   );
 };

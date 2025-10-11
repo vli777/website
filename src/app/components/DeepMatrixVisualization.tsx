@@ -36,12 +36,12 @@ const DeepMatrixVisualization: React.FC<DeepMatrixVisualizationProps> = ({
   cameraZoom = 1.5, // Camera zoom factor
   activationChance = 0.002,
   fadeSpeed = 0.05,
-  interactionSensitivity = 0.21,
-  dragDamping = 0.94,
-  inertiaDecay = 0.995,
-  maxRotationVelocity = 0.2,
-  autoRotationSpeed = 0.004,
-  autoRotationJitter = 0.0008
+  interactionSensitivity = 0.42,
+  dragDamping = 0.93,
+  inertiaDecay = 0.996,
+  maxRotationVelocity = 0.42,
+  autoRotationSpeed = 0.007,
+  autoRotationJitter = 0.001
 }) => {
   const mountRef = useRef<HTMLDivElement | null>(null);
 
@@ -237,11 +237,16 @@ const DeepMatrixVisualization: React.FC<DeepMatrixVisualizationProps> = ({
     container.style.touchAction = 'none';
 
     const updateRotationVelocity = (deltaX: number, deltaY: number) => {
-      rotationVelocity.x = THREE.MathUtils.clamp(rotationVelocity.x + deltaY, -maxRotationVelocity, maxRotationVelocity);
-      rotationVelocity.y = THREE.MathUtils.clamp(rotationVelocity.y + deltaX, -maxRotationVelocity, maxRotationVelocity);
+      rotationVelocity.x += deltaY;
+      rotationVelocity.y += deltaX;
+      const velocityLength = rotationVelocity.length();
+      if (velocityLength > maxRotationVelocity) {
+        rotationVelocity.setLength(maxRotationVelocity);
+      }
     };
 
     const handlePointerDown = (event: PointerEvent) => {
+      container.setPointerCapture(event.pointerId);
       isDragging = true;
       lastPointer.set(event.clientX, event.clientY);
       container.style.cursor = 'grabbing';
@@ -255,8 +260,11 @@ const DeepMatrixVisualization: React.FC<DeepMatrixVisualizationProps> = ({
       updateRotationVelocity(deltaX, deltaY);
     };
 
-    const handlePointerUp = () => {
+    const handlePointerUp = (event: PointerEvent) => {
       if (!isDragging) return;
+      if (typeof container.hasPointerCapture === 'function' && container.hasPointerCapture(event.pointerId)) {
+        container.releasePointerCapture(event.pointerId);
+      }
       isDragging = false;
       container.style.cursor = 'grab';
     };

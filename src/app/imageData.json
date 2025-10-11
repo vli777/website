@@ -12,24 +12,6 @@
     "alignment": "center"
   },
   {
-    "imageSrc": "/optimal zscore reversion parameters.png",
-    "title": "Z-Score Reversion Hyperparameter Tuning",
-    "description": "3D scatter plot of Optuna optimal reversion windows and z-score threshold parameters",
-    "alignment": "center"
-  },
-  {
-    "imageSrc": "/reversion.png",
-    "title": "Z-Score Mean Reversion Signals",
-    "description": "Volatility-adjusted signal propagation through asset clusters allows comprehensive detection of reversion signals whenever a related source signal appears",
-    "alignment": "center"
-  },
-  {
-    "imageSrc": "/multi asset reversion.png",
-    "title": "Multi-asset Statistical Arbitrage",
-    "description": "Z-score spread-based reversion for a cointegrated basket of assets (or using cross-sectional score vs cluster mean)",
-    "alignment": "center"
-  },
-  {
     "imageSrc": "/optimization contour plot.png",
     "title": "Global Optimization",
     "description": "3D slice after PCA weights projection. Optimization search space with optional constraints e.g. CVaR, σ, via simulated annealing or stochastic diffusion",
@@ -52,17 +34,5 @@
     "title": "Cumulative Returns",
     "description": "Example portfolio highlighting period changes (3 mo. sampling in the image)",
     "alignment": "right"
-  },
-  {
-    "imageSrc": "/shap.png",
-    "title": "SHAP Analysis",
-    "description": "Example feature set containing indicators and price data used in a benchmark gradient boosting model",
-    "alignment": "right top"
-  },
-  {
-    "imageSrc": "/code screenshot.png",
-    "title": "Source Code Screenshot",
-    "description": "Screenshot of project code from private repo",
-    "alignment": "center"
   }
 ]

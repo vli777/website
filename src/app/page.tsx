@@ -66,7 +66,7 @@ const Home: React.FC = () => {
       </div>
 
       {/* Hero content grid below landing section */}
-      <section className="snap-start md:snap-align-none grid gap-2 sm:grid-cols-2 grid-rows-[repeat(3,minmax(500px,1fr))]">
+      <section className="snap-start md:snap-align-none grid gap-2 grid-cols-1 sm:grid-cols-2 auto-rows-[minmax(500px,1fr)]">
         {heroImages.map((img, index) => (
           <ImageCard key={index} {...img} index={index} />
         ))}
@@ -74,7 +74,7 @@ const Home: React.FC = () => {
 
       {/* Additional panels if more content is provided */}
       {additionalImages.length > 0 && (
-        <section className="snap-start md:snap-align-none grid gap-2 sm:grid-cols-2 auto-rows-[minmax(500px,1fr)]">
+        <section className="snap-start md:snap-align-none grid gap-2 grid-cols-1 sm:grid-cols-2 auto-rows-[minmax(500px,1fr)]">
           {additionalImages.map((img, index) => (
             <ImageCard key={index} {...img} index={index + heroImages.length} />
           ))}

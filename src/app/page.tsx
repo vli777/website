@@ -46,7 +46,7 @@ const Home: React.FC = () => {
       return 1;
     }
     const ratio = downloadRadius / baseRadius;
-    return Math.min(3, Math.max(1, ratio));
+    return Math.min(21, Math.max(1, ratio));
   }, [downloadRadius, baseRadius]);
 
   return (
@@ -80,14 +80,7 @@ const Home: React.FC = () => {
           </div>
 
           <div className="relative z-40 flex w-full shrink-0 justify-center px-4 md:w-1/2 md:justify-end md:px-0">
-            <div
-              className="h-72 w-72 sm:h-96 sm:w-96 md:h-[28rem] md:w-[28rem] md:sticky md:top-16"
-              style={{
-                transform: `scale(${matrixScale})`,
-                transformOrigin: "center",
-                transition: "transform 0.4s ease",
-              }}
-            >
+            <div className="h-72 w-72 sm:h-96 sm:w-96 md:h-[28rem] md:w-[28rem] md:sticky md:top-16">
               <DeepMatrixVisualization
                 stackCount={1}
                 layerCount={8}
@@ -101,6 +94,7 @@ const Home: React.FC = () => {
                 cameraZoom={9.0}
                 activationChance={0.01}
                 fadeSpeed={0.5}
+                scaleMultiplier={matrixScale}
               />
             </div>
           </div>

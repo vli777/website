@@ -20,6 +20,7 @@ interface DeepMatrixVisualizationProps {
   maxRotationVelocity?: number; // Clamp for rotation velocity magnitude
   autoRotationSpeed?: number;   // Base speed for autonomous rotation
   autoRotationJitter?: number;  // Random variation applied over time
+  scaleMultiplier?: number;     // External scale factor applied to the group
 }
 
 
@@ -41,9 +42,11 @@ const DeepMatrixVisualization: React.FC<DeepMatrixVisualizationProps> = ({
   inertiaDecay = 0.996,
   maxRotationVelocity = 0.42,
   autoRotationSpeed = 0.007,
-  autoRotationJitter = 0.001
+  autoRotationJitter = 0.001,
+  scaleMultiplier = 1
 }) => {
   const mountRef = useRef<HTMLDivElement | null>(null);
+  const parentGroupRef = useRef<THREE.Group | null>(null);
 
   useEffect(() => {
     const container = mountRef.current;
@@ -91,6 +94,7 @@ const DeepMatrixVisualization: React.FC<DeepMatrixVisualizationProps> = ({
 
     // Parent group for all tokens and connections.
     const parentGroup = new THREE.Group();
+    parentGroupRef.current = parentGroup;
     scene.add(parentGroup);
 
     /**
@@ -546,6 +550,8 @@ const DeepMatrixVisualization: React.FC<DeepMatrixVisualizationProps> = ({
       if (container && renderer && renderer.domElement && container.contains(renderer.domElement)) {
         container.removeChild(renderer.domElement);
       }
+      parentGroupRef.current = null;
+      parentGroupRef.current = null;
     };
   }, [
     stackCount,
@@ -567,6 +573,15 @@ const DeepMatrixVisualization: React.FC<DeepMatrixVisualizationProps> = ({
     autoRotationSpeed,
     autoRotationJitter
   ]);
+
+  useEffect(() => {
+    const group = parentGroupRef.current;
+    if (!group) {
+      return;
+    }
+    const clamped = Math.max(0.1, Math.min(21, scaleMultiplier));
+    group.scale.set(clamped, clamped, clamped);
+  }, [scaleMultiplier]);
 
   return <div ref={mountRef} style={{ width: '100%', height: '100%', background: 'transparent' }} />;
 };

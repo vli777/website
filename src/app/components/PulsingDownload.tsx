@@ -44,6 +44,10 @@ const PulsingDownload = ({ onRadiusChange }: PulsingDownloadProps) => {
     return () => observer.disconnect();
   }, [notifyRadius, onRadiusChange]);
 
+  useEffect(() => {
+    notifyRadius();
+  }, [hovered, notifyRadius]);
+
   const size = hovered ? HOVER_SIZE : BASE_SIZE;
 
   return (

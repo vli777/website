@@ -284,6 +284,112 @@ const DeepMatrixVisualization: React.FC<DeepMatrixVisualizationProps> = ({
     const targetAutoRotation = autoRotation.clone();
     const autoRotationLerp = 0.02;
 
+    type MovementPhase = 'zip' | 'hover';
+
+    const movementBounds = new THREE.Vector3(18, 12, 11);
+
+    const hoverAmplitude = new THREE.Vector3(3.2, 2.1, 1.4);
+
+    const hoverFrequency = new THREE.Vector3(0.0031, 0.0027, 0.0024);
+
+    let movementPhase: MovementPhase = 'hover';
+
+    let movementTimer = 0;
+
+    let movementDuration = 0;
+
+    const movementTarget = new THREE.Vector3();
+
+    const hoverBase = new THREE.Vector3();
+
+    const hoverJitter = new THREE.Vector3();
+
+    const hoverSeed = Math.random() * 10000;
+
+    const tempDirection = new THREE.Vector3();
+
+    const currentPos = new THREE.Vector3();
+
+    const zipStart = new THREE.Vector3();
+
+
+
+    const randomInRange = (min: number, max: number) => Math.random() * (max - min) + min;
+
+
+
+    const clampToBounds = (target: THREE.Vector3) => {
+
+      target.set(
+
+        THREE.MathUtils.clamp(target.x, -movementBounds.x, movementBounds.x),
+
+        THREE.MathUtils.clamp(target.y, -movementBounds.y, movementBounds.y),
+
+        THREE.MathUtils.clamp(target.z, -movementBounds.z, movementBounds.z)
+
+      );
+
+    };
+
+
+
+    const assignRandomTarget = () => {
+
+      currentPos.copy(parentGroup.position);
+
+      const baseDistance = Math.max(currentPos.length(), 1);
+
+      const scale = randomInRange(1, 3);
+
+      tempDirection.set(
+
+        Math.random() * 2 - 1,
+
+        Math.random() * 2 - 1,
+
+        Math.random() * 2 - 1
+
+      ).normalize().multiplyScalar(baseDistance * scale);
+
+
+
+      movementTarget.copy(currentPos).add(tempDirection);
+
+      clampToBounds(movementTarget);
+
+    };
+
+
+
+    const setPhase = (phase: MovementPhase) => {
+
+      movementPhase = phase;
+
+      movementTimer = 0;
+
+      if (phase === 'zip') {
+
+        movementDuration = randomInRange(900, 1500);
+
+        zipStart.copy(parentGroup.position);
+
+        assignRandomTarget();
+
+      } else {
+
+        movementDuration = randomInRange(2600, 4200);
+
+        hoverBase.copy(parentGroup.position);
+
+      }
+
+    };
+
+
+
+    setPhase('hover');
+
     async function animate() {
       requestAnimationFrame(animate);
 
@@ -302,6 +408,32 @@ const DeepMatrixVisualization: React.FC<DeepMatrixVisualizationProps> = ({
         );
       }
       autoRotation.lerp(targetAutoRotation, autoRotationLerp * frameFactor);
+
+      // Dragonfly-style movement between zips and hovers
+      movementTimer += deltaTime;
+      if (movementPhase === 'zip') {
+        const progress = movementDuration > 0 ? Math.min(movementTimer / movementDuration, 1) : 1;
+        const eased = 1 - Math.pow(1 - progress, 3);
+        tempDirection.copy(zipStart).lerp(movementTarget, eased);
+        parentGroup.position.lerp(tempDirection, 0.16 * frameFactor);
+
+        if (progress >= 0.999) {
+          setPhase('hover');
+        }
+      } else {
+        const timeFactor = movementTimer + hoverSeed;
+        hoverJitter.set(
+          Math.sin(timeFactor * hoverFrequency.x) * hoverAmplitude.x,
+          Math.sin(timeFactor * hoverFrequency.y) * hoverAmplitude.y,
+          Math.sin(timeFactor * hoverFrequency.z) * hoverAmplitude.z
+        );
+        movementTarget.copy(hoverBase).add(hoverJitter);
+        parentGroup.position.lerp(movementTarget, 0.06 * frameFactor);
+
+        if (movementTimer >= movementDuration) {
+          setPhase('zip');
+        }
+      }
 
       // Apply rotation velocity with damping/inertia plus autonomous rotation
       parentGroup.rotation.x = THREE.MathUtils.clamp(

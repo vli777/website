@@ -281,7 +281,7 @@ const DeepMatrixVisualization: React.FC<DeepMatrixVisualizationProps> = ({
       autoRotationSpeed * (Math.random() * 0.8 + 0.6),
       autoRotationSpeed * (Math.random() * 0.5 + 0.35)
     );
-    let targetAutoRotation = autoRotation.clone();
+    const targetAutoRotation = autoRotation.clone();
     const autoRotationLerp = 0.02;
 
     async function animate() {
@@ -317,7 +317,7 @@ const DeepMatrixVisualization: React.FC<DeepMatrixVisualizationProps> = ({
       } else {
         rotationVelocity.multiplyScalar(inertiaDecay);
         if (rotationVelocity.lengthSq() < 1e-6) {
-          rotationVelocity.set(0, 0);
+          rotationVelocity.set(0, 0, 0);
         }
       }
 

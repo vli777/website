@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, type MouseEvent } from "react";
+import { useEffect } from "react";
 import Image from "next/image";
 import { X } from "lucide-react";
 

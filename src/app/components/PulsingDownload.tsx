@@ -2,7 +2,8 @@ import { Download } from "lucide-react";
 import { useState } from "react";
 import { formatGoogleDriveLink } from "../helpers";
 
-const googleDriveShareLink = "https://drive.google.com/file/d/1jEfASk8sQCZrtz1bBK_xuqGgT_l_Xcww/view?usp=sharing"
+const { GDRIVE = '' } = process.env;
+const googleDriveShareLink = GDRIVE;
 const directDownloadLink = formatGoogleDriveLink(googleDriveShareLink);
 
 const PulsingDownload = () => {

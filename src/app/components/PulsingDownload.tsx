@@ -2,9 +2,10 @@ import { Download } from "lucide-react";
 import { useState } from "react";
 import { formatGoogleDriveLink } from "../helpers";
 
-const { GDRIVE = '' } = process.env;
-const googleDriveShareLink = GDRIVE;
-const directDownloadLink = formatGoogleDriveLink(googleDriveShareLink);
+const googleDriveShareLink = process.env.NEXT_PUBLIC_GDRIVE ?? "";
+const directDownloadLink = googleDriveShareLink
+  ? formatGoogleDriveLink(googleDriveShareLink)
+  : "";
 
 const PulsingDownload = () => {
   const [hovered, setHovered] = useState(false);

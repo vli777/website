@@ -1,22 +1,42 @@
-'use client';
+"use client";
 
-import React from 'react';
-import dynamic from 'next/dynamic';
-import PulsingDownload from './components/PulsingDownload';
-import imageData from './imageData.json';
-import { ImageCard } from './components/ImageCard';
+import React, { useCallback, useState } from "react";
+import dynamic from "next/dynamic";
+import PulsingDownload from "./components/PulsingDownload";
+import imageData from "./imageData.json";
+import { ImageCard } from "./components/ImageCard";
+import ImageModal from "./components/ImageModal";
 
 const DeepMatrixVisualization = dynamic(
   () => import('./components/DeepMatrixVisualization'),
   { ssr: false }
 );
 
+type VisualizationImage = {
+  imageSrc: string;
+  title: string;
+  description?: string;
+  alignment?: string;
+};
+
+const typedImages = imageData as VisualizationImage[];
+
 const Home: React.FC = () => {
-  const heroImages = imageData.slice(0, 6);
-  const additionalImages = imageData.slice(6);
+  const [selectedImage, setSelectedImage] = useState<VisualizationImage | null>(null);
+  const heroImages = typedImages.slice(0, 6);
+  const additionalImages = typedImages.slice(6);
+
+  const handleCardClick = useCallback((image: VisualizationImage) => {
+    setSelectedImage(image);
+  }, []);
+
+  const handleModalClose = useCallback(() => {
+    setSelectedImage(null);
+  }, []);
 
   return (
-    <div className="flex h-screen flex-col gap-2 overflow-y-scroll snap-y snap-mandatory md:min-h-screen md:h-auto md:overflow-y-auto md:snap-none">
+    <>
+      <div className="flex h-screen flex-col gap-2 overflow-y-scroll snap-y snap-mandatory md:min-h-screen md:h-auto md:overflow-y-auto md:snap-none">
       {/* Hero Section */}
       <div className="snap-start md:snap-align-none relative flex h-screen flex-col justify-center text-white">
         {/* Background video */}
@@ -66,26 +86,40 @@ const Home: React.FC = () => {
       </div>
 
       {/* Hero content grid below landing section */}
-      <section className="snap-start md:snap-align-none grid gap-2 grid-cols-1 sm:grid-cols-2 auto-rows-[minmax(500px,1fr)]">
-        {heroImages.map((img, index) => (
-          <ImageCard key={index} {...img} index={index} />
-        ))}
-      </section>
+        <section className="snap-start md:snap-align-none grid gap-2 grid-cols-1 sm:grid-cols-2 auto-rows-[minmax(500px,1fr)]">
+          {heroImages.map((img, index) => (
+            <ImageCard
+              key={index}
+              {...img}
+              index={index}
+              onClick={() => handleCardClick(img)}
+            />
+          ))}
+        </section>
 
       {/* Additional panels if more content is provided */}
       {additionalImages.length > 0 && (
-        <section className="snap-start md:snap-align-none grid gap-2 grid-cols-1 sm:grid-cols-2 auto-rows-[minmax(500px,1fr)]">
-          {additionalImages.map((img, index) => (
-            <ImageCard key={index} {...img} index={index + heroImages.length} />
-          ))}
-        </section>
+          <section className="snap-start md:snap-align-none grid gap-2 grid-cols-1 sm:grid-cols-2 auto-rows-[minmax(500px,1fr)]">
+            {additionalImages.map((img, index) => (
+              <ImageCard
+                key={index + heroImages.length}
+                {...img}
+                index={index + heroImages.length}
+                onClick={() => handleCardClick(img)}
+              />
+            ))}
+          </section>
       )}
 
       <footer className="snap-start md:snap-align-none flex flex-col items-center justify-center gap-2 py-8 text-center text-sm text-gray-400">
         <p>© {new Date().getFullYear()} Vince Li. All rights reserved.</p>
         <p className="text-xs text-gray-500">Crafted with React, Next.js, and a hint of GPU magic.</p>
       </footer>
-    </div>
+      </div>
+      {selectedImage && (
+        <ImageModal image={selectedImage} onClose={handleModalClose} />
+      )}
+    </>
   );
 };
 

@@ -47,11 +47,23 @@ const DeepMatrixVisualization: React.FC<DeepMatrixVisualizationProps> = ({
 }) => {
   const mountRef = useRef<HTMLDivElement | null>(null);
   const parentGroupRef = useRef<THREE.Group | null>(null);
+  const viewportBoundsRef = useRef(new THREE.Vector2(18, 12));
+  const translationVelocityRef = useRef(new THREE.Vector3());
+  const pointerPositionRef = useRef(new THREE.Vector2());
+  const pointerActiveRef = useRef(false);
+  const scaleRef = useRef(1);
+  const boundingSphereRef = useRef(new THREE.Sphere(new THREE.Vector3(), 1));
 
   useEffect(() => {
     const container = mountRef.current;
     if (!container) return;
-
+    const translationVelocity = translationVelocityRef.current;
+    const pointerPosition = pointerPositionRef.current;
+    const raycaster = new THREE.Raycaster();
+    const sphereWorld = new THREE.Sphere();
+    const sphereCenter = new THREE.Vector3();
+    const pointerNDC = new THREE.Vector2();
+    const intersectionPoint = new THREE.Vector3();
     /**
      * Scene, Camera, Renderer
      */
@@ -75,10 +87,20 @@ const DeepMatrixVisualization: React.FC<DeepMatrixVisualizationProps> = ({
     camera.position.set(0, 0, cameraDistance);
     camera.lookAt(new THREE.Vector3(0, 0, 0));
 
-    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });
 
-    renderer.setSize(container.clientWidth, container.clientHeight);
-    // Limit pixel ratio to reduce resource usage on high-DPI displays
+    const resizeRenderer = () => {
+      const { clientWidth, clientHeight } = container;
+      renderer.setSize(clientWidth, clientHeight, false);
+      const aspect = clientWidth / clientHeight;
+      camera.aspect = aspect;
+      camera.updateProjectionMatrix();
+      const halfHeight = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) * camera.position.z;
+      const halfWidth = halfHeight * aspect;
+      viewportBoundsRef.current.set(halfWidth, halfHeight);
+    };
+
+    resizeRenderer();
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.setClearColor(0x000000, 0);
     renderer.domElement.style.background = 'transparent';
@@ -109,6 +131,7 @@ const DeepMatrixVisualization: React.FC<DeepMatrixVisualizationProps> = ({
       color: 0xffffff, // White points
       size: 0.2,       // Smaller default max size
     });
+    const boundingBox = new THREE.Box3();
 
     for (let stackIndex = 0; stackIndex < stackCount; stackIndex++) {
       const stackY = stackIndex * stackSpacing - offsetY;
@@ -124,7 +147,9 @@ const DeepMatrixVisualization: React.FC<DeepMatrixVisualizationProps> = ({
           const col = t % cols;
           const x = (col - cols / 2) * horizontalSpacing;
           const y = (row - rows / 2) * verticalSpacing + stackY;
-          layerTokenPositions.push(new THREE.Vector3(x, y, layerZ));
+          const point = new THREE.Vector3(x, y, layerZ);
+          layerTokenPositions.push(point);
+          boundingBox.expandByPoint(point);
         }
         stackTokenPositions.push(layerTokenPositions);
       }
@@ -139,6 +164,10 @@ const DeepMatrixVisualization: React.FC<DeepMatrixVisualizationProps> = ({
         allPointsObjects.push(points);
       })
     );
+
+    if (!boundingBox.isEmpty()) {
+      boundingBox.getBoundingSphere(boundingSphereRef.current);
+    }
 
     /**
      * Build Connections (Intra- and Inter-Layer) - OPTIMIZED
@@ -253,27 +282,92 @@ const DeepMatrixVisualization: React.FC<DeepMatrixVisualizationProps> = ({
       container.setPointerCapture(event.pointerId);
       isDragging = true;
       lastPointer.set(event.clientX, event.clientY);
+      pointerPosition.set(event.clientX, event.clientY);
+      pointerActiveRef.current = true;
       container.style.cursor = 'grabbing';
     };
 
+    const applyHoverImpulse = (event: PointerEvent) => {
+      const rect = container.getBoundingClientRect();
+      if (
+        event.clientX < rect.left ||
+        event.clientX > rect.right ||
+        event.clientY < rect.top ||
+        event.clientY > rect.bottom
+      ) {
+        pointerActiveRef.current = false;
+        return;
+      }
+
+      const localSphere = boundingSphereRef.current;
+      if (localSphere.radius <= 0) {
+        return;
+      }
+
+      pointerNDC.set(
+        ((event.clientX - rect.left) / rect.width) * 2 - 1,
+        -(((event.clientY - rect.top) / rect.height) * 2 - 1)
+      );
+      raycaster.setFromCamera(pointerNDC, camera);
+      sphereCenter.copy(parentGroup.position);
+      sphereWorld.center.copy(sphereCenter);
+      sphereWorld.radius = localSphere.radius * scaleRef.current;
+
+      if (raycaster.ray.intersectSphere(sphereWorld, intersectionPoint) === null) {
+        pointerActiveRef.current = false;
+        return;
+      }
+
+      if (!pointerActiveRef.current) {
+        pointerPosition.set(event.clientX, event.clientY);
+        pointerActiveRef.current = true;
+        return;
+      }
+
+      const deltaX = event.clientX - pointerPosition.x;
+      const deltaY = event.clientY - pointerPosition.y;
+      pointerPosition.set(event.clientX, event.clientY);
+
+      if (deltaX === 0 && deltaY === 0) return;
+
+      const bounds = viewportBoundsRef.current;
+      const pixelToWorldX = (bounds.x * 2) / rect.width;
+      const pixelToWorldY = (bounds.y * 2) / rect.height;
+      const impulseScale = 0.2;
+
+      translationVelocity.x += deltaX * pixelToWorldX * impulseScale;
+      translationVelocity.y -= deltaY * pixelToWorldY * impulseScale;
+    };
+
     const handlePointerMove = (event: PointerEvent) => {
-      if (!isDragging) return;
-      const deltaX = (event.clientX - lastPointer.x) * interactionSensitivity;
-      const deltaY = (event.clientY - lastPointer.y) * interactionSensitivity;
-      lastPointer.set(event.clientX, event.clientY);
-      updateRotationVelocity(deltaX, deltaY);
+      if (isDragging) {
+        const deltaX = (event.clientX - lastPointer.x) * interactionSensitivity;
+        const deltaY = (event.clientY - lastPointer.y) * interactionSensitivity;
+        lastPointer.set(event.clientX, event.clientY);
+        updateRotationVelocity(deltaX, deltaY);
+      } else {
+        applyHoverImpulse(event);
+      }
     };
 
     const handlePointerUp = (event: PointerEvent) => {
-      if (!isDragging) return;
-      if (typeof container.hasPointerCapture === 'function' && container.hasPointerCapture(event.pointerId)) {
-        container.releasePointerCapture(event.pointerId);
+      if (isDragging) {
+        if (typeof container.hasPointerCapture === 'function' && container.hasPointerCapture(event.pointerId)) {
+          container.releasePointerCapture(event.pointerId);
+        }
+        isDragging = false;
+        container.style.cursor = 'grab';
       }
-      isDragging = false;
-      container.style.cursor = 'grab';
+      pointerPosition.set(event.clientX, event.clientY);
+      pointerActiveRef.current = true;
+    };
+
+    const handlePointerLeave = () => {
+      pointerActiveRef.current = false;
     };
 
     container.addEventListener('pointerdown', handlePointerDown);
+    container.addEventListener('pointerleave', handlePointerLeave);
     window.addEventListener('pointermove', handlePointerMove, { passive: true });
     window.addEventListener('pointerup', handlePointerUp, { passive: true });
     window.addEventListener('pointercancel', handlePointerUp, { passive: true });
@@ -287,112 +381,6 @@ const DeepMatrixVisualization: React.FC<DeepMatrixVisualizationProps> = ({
     );
     const targetAutoRotation = autoRotation.clone();
     const autoRotationLerp = 0.02;
-
-    type MovementPhase = 'zip' | 'hover';
-
-    const movementBounds = new THREE.Vector3(18, 12, 11);
-
-    const hoverAmplitude = new THREE.Vector3(3.2, 2.1, 1.4);
-
-    const hoverFrequency = new THREE.Vector3(0.0031, 0.0027, 0.0024);
-
-    let movementPhase: MovementPhase = 'hover';
-
-    let movementTimer = 0;
-
-    let movementDuration = 0;
-
-    const movementTarget = new THREE.Vector3();
-
-    const hoverBase = new THREE.Vector3();
-
-    const hoverJitter = new THREE.Vector3();
-
-    const hoverSeed = Math.random() * 10000;
-
-    const tempDirection = new THREE.Vector3();
-
-    const currentPos = new THREE.Vector3();
-
-    const zipStart = new THREE.Vector3();
-
-
-
-    const randomInRange = (min: number, max: number) => Math.random() * (max - min) + min;
-
-
-
-    const clampToBounds = (target: THREE.Vector3) => {
-
-      target.set(
-
-        THREE.MathUtils.clamp(target.x, -movementBounds.x, movementBounds.x),
-
-        THREE.MathUtils.clamp(target.y, -movementBounds.y, movementBounds.y),
-
-        THREE.MathUtils.clamp(target.z, -movementBounds.z, movementBounds.z)
-
-      );
-
-    };
-
-
-
-    const assignRandomTarget = () => {
-
-      currentPos.copy(parentGroup.position);
-
-      const baseDistance = Math.max(currentPos.length(), 1);
-
-      const scale = randomInRange(1, 3);
-
-      tempDirection.set(
-
-        Math.random() * 2 - 1,
-
-        Math.random() * 2 - 1,
-
-        Math.random() * 2 - 1
-
-      ).normalize().multiplyScalar(baseDistance * scale);
-
-
-
-      movementTarget.copy(currentPos).add(tempDirection);
-
-      clampToBounds(movementTarget);
-
-    };
-
-
-
-    const setPhase = (phase: MovementPhase) => {
-
-      movementPhase = phase;
-
-      movementTimer = 0;
-
-      if (phase === 'zip') {
-
-        movementDuration = randomInRange(900, 1500);
-
-        zipStart.copy(parentGroup.position);
-
-        assignRandomTarget();
-
-      } else {
-
-        movementDuration = randomInRange(2600, 4200);
-
-        hoverBase.copy(parentGroup.position);
-
-      }
-
-    };
-
-
-
-    setPhase('hover');
 
     async function animate() {
       requestAnimationFrame(animate);
@@ -413,30 +401,33 @@ const DeepMatrixVisualization: React.FC<DeepMatrixVisualizationProps> = ({
       }
       autoRotation.lerp(targetAutoRotation, autoRotationLerp * frameFactor);
 
-      // Dragonfly-style movement between zips and hovers
-      movementTimer += deltaTime;
-      if (movementPhase === 'zip') {
-        const progress = movementDuration > 0 ? Math.min(movementTimer / movementDuration, 1) : 1;
-        const eased = 1 - Math.pow(1 - progress, 3);
-        tempDirection.copy(zipStart).lerp(movementTarget, eased);
-        parentGroup.position.lerp(tempDirection, 0.16 * frameFactor);
+      if (translationVelocity.lengthSq() > 1e-6) {
+        parentGroup.position.x += translationVelocity.x * frameFactor;
+        parentGroup.position.y += translationVelocity.y * frameFactor;
+        const velocityDamping = Math.pow(0.98, frameFactor);
+        translationVelocity.multiplyScalar(velocityDamping);
+      }
 
-        if (progress >= 0.999) {
-          setPhase('hover');
-        }
-      } else {
-        const timeFactor = movementTimer + hoverSeed;
-        hoverJitter.set(
-          Math.sin(timeFactor * hoverFrequency.x) * hoverAmplitude.x,
-          Math.sin(timeFactor * hoverFrequency.y) * hoverAmplitude.y,
-          Math.sin(timeFactor * hoverFrequency.z) * hoverAmplitude.z
-        );
-        movementTarget.copy(hoverBase).add(hoverJitter);
-        parentGroup.position.lerp(movementTarget, 0.06 * frameFactor);
+      const bounds = viewportBoundsRef.current;
+      const scale = Math.max(scaleRef.current, 0.0001);
+      const sphereRadius = boundingSphereRef.current.radius * scale;
+      const limitX = Math.max(bounds.x - sphereRadius, 0);
+      const limitY = Math.max(bounds.y - sphereRadius, 0);
 
-        if (movementTimer >= movementDuration) {
-          setPhase('zip');
-        }
+      if (parentGroup.position.x > limitX) {
+        parentGroup.position.x = limitX;
+        translationVelocity.x = -Math.abs(translationVelocity.x) * 0.76;
+      } else if (parentGroup.position.x < -limitX) {
+        parentGroup.position.x = -limitX;
+        translationVelocity.x = Math.abs(translationVelocity.x) * 0.76;
+      }
+
+      if (parentGroup.position.y > limitY) {
+        parentGroup.position.y = limitY;
+        translationVelocity.y = -Math.abs(translationVelocity.y) * 0.76;
+      } else if (parentGroup.position.y < -limitY) {
+        parentGroup.position.y = -limitY;
+        translationVelocity.y = Math.abs(translationVelocity.y) * 0.76;
       }
 
       // Apply rotation velocity with damping/inertia plus autonomous rotation
@@ -517,15 +508,14 @@ const DeepMatrixVisualization: React.FC<DeepMatrixVisualizationProps> = ({
 
     const onResize = () => {
       if (!renderer) return;
-      renderer.setSize(container.clientWidth, container.clientHeight);
-      camera.aspect = container.clientWidth / container.clientHeight;
-      camera.updateProjectionMatrix();
+      resizeRenderer();
     };
     window.addEventListener('resize', onResize);
 
     return () => {
       window.removeEventListener('resize', onResize);
       container.removeEventListener('pointerdown', handlePointerDown);
+      container.removeEventListener('pointerleave', handlePointerLeave);
       window.removeEventListener('pointermove', handlePointerMove);
       window.removeEventListener('pointerup', handlePointerUp);
       window.removeEventListener('pointercancel', handlePointerUp);
@@ -581,6 +571,13 @@ const DeepMatrixVisualization: React.FC<DeepMatrixVisualizationProps> = ({
     }
     const clamped = Math.max(0.1, Math.min(21, scaleMultiplier));
     group.scale.set(clamped, clamped, clamped);
+    scaleRef.current = clamped;
+    const bounds = viewportBoundsRef.current;
+    const sphereRadius = boundingSphereRef.current.radius * clamped;
+    const limitX = Math.max(bounds.x - sphereRadius, 0);
+    const limitY = Math.max(bounds.y - sphereRadius, 0);
+    group.position.x = THREE.MathUtils.clamp(group.position.x, -limitX, limitX);
+    group.position.y = THREE.MathUtils.clamp(group.position.y, -limitY, limitY);
   }, [scaleMultiplier]);
 
   return <div ref={mountRef} style={{ width: '100%', height: '100%', background: 'transparent' }} />;

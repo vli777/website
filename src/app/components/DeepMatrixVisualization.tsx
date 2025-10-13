@@ -24,6 +24,8 @@ interface DeepMatrixVisualizationProps {
 }
 
 
+const BASE_SCALE = 0.5;
+
 const DeepMatrixVisualization: React.FC<DeepMatrixVisualizationProps> = ({
   stackCount,
   layerCount,
@@ -51,6 +53,7 @@ const DeepMatrixVisualization: React.FC<DeepMatrixVisualizationProps> = ({
   const translationVelocityRef = useRef(new THREE.Vector3());
   const pointerPositionRef = useRef(new THREE.Vector2());
   const pointerActiveRef = useRef(false);
+  const pointerTimeRef = useRef(0);
   const scaleRef = useRef(1);
   const boundingSphereRef = useRef(new THREE.Sphere(new THREE.Vector3(), 1));
 
@@ -59,6 +62,7 @@ const DeepMatrixVisualization: React.FC<DeepMatrixVisualizationProps> = ({
     if (!container) return;
     const translationVelocity = translationVelocityRef.current;
     const pointerPosition = pointerPositionRef.current;
+    pointerTimeRef.current = typeof performance !== 'undefined' ? performance.now() : Date.now();
     const raycaster = new THREE.Raycaster();
     const sphereWorld = new THREE.Sphere();
     const sphereCenter = new THREE.Vector3();
@@ -90,9 +94,11 @@ const DeepMatrixVisualization: React.FC<DeepMatrixVisualizationProps> = ({
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });
 
     const resizeRenderer = () => {
-      const { clientWidth, clientHeight } = container;
-      renderer.setSize(clientWidth, clientHeight, false);
-      const aspect = clientWidth / clientHeight;
+      const rect = container.getBoundingClientRect();
+      const width = Math.max(window.innerWidth, rect.width, 1);
+      const height = Math.max(window.innerHeight, rect.height, 1);
+      renderer.setSize(width, height, false);
+      const aspect = width / height;
       camera.aspect = aspect;
       camera.updateProjectionMatrix();
       const halfHeight = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) * camera.position.z;
@@ -321,6 +327,7 @@ const DeepMatrixVisualization: React.FC<DeepMatrixVisualizationProps> = ({
       if (!pointerActiveRef.current) {
         pointerPosition.set(event.clientX, event.clientY);
         pointerActiveRef.current = true;
+        pointerTimeRef.current = typeof performance !== 'undefined' ? performance.now() : Date.now();
         return;
       }
 
@@ -328,12 +335,29 @@ const DeepMatrixVisualization: React.FC<DeepMatrixVisualizationProps> = ({
       const deltaY = event.clientY - pointerPosition.y;
       pointerPosition.set(event.clientX, event.clientY);
 
-      if (deltaX === 0 && deltaY === 0) return;
+      const now = typeof performance !== 'undefined' ? performance.now() : Date.now();
+      if (deltaX === 0 && deltaY === 0) {
+        pointerTimeRef.current = now;
+        return;
+      }
 
       const bounds = viewportBoundsRef.current;
       const pixelToWorldX = (bounds.x * 2) / rect.width;
       const pixelToWorldY = (bounds.y * 2) / rect.height;
-      const impulseScale = 0.2;
+      const dt = Math.max((now - pointerTimeRef.current) / 1000, 1 / 240);
+      pointerTimeRef.current = now;
+      const pixelSpeed = Math.hypot(deltaX, deltaY) / dt;
+      const baseImpulse = 0.055;
+      const speedBoost = Math.min(pixelSpeed * 0.002, 2.7);
+      const angleFactor = Math.min(1.8, speedBoost + 0.4);
+      rotationVelocity.y += (deltaX * 0.0012) * angleFactor;
+      rotationVelocity.x += (deltaY * 0.0012) * angleFactor;
+      const rotationCap = 2.2;
+      if (rotationVelocity.length() > rotationCap) {
+        rotationVelocity.setLength(rotationCap);
+      }
+
+      const impulseScale = baseImpulse * (1 + speedBoost);
 
       translationVelocity.x += deltaX * pixelToWorldX * impulseScale;
       translationVelocity.y -= deltaY * pixelToWorldY * impulseScale;
@@ -360,10 +384,14 @@ const DeepMatrixVisualization: React.FC<DeepMatrixVisualizationProps> = ({
       }
       pointerPosition.set(event.clientX, event.clientY);
       pointerActiveRef.current = true;
+      pointerTimeRef.current = typeof performance !== 'undefined' ? performance.now() : Date.now();
+      const releaseFactor = 0.06;
+      rotationVelocity.multiplyScalar(1 - releaseFactor);
     };
 
     const handlePointerLeave = () => {
       pointerActiveRef.current = false;
+      pointerTimeRef.current = typeof performance !== 'undefined' ? performance.now() : Date.now();
     };
 
     container.addEventListener('pointerdown', handlePointerDown);
@@ -404,30 +432,32 @@ const DeepMatrixVisualization: React.FC<DeepMatrixVisualizationProps> = ({
       if (translationVelocity.lengthSq() > 1e-6) {
         parentGroup.position.x += translationVelocity.x * frameFactor;
         parentGroup.position.y += translationVelocity.y * frameFactor;
-        const velocityDamping = Math.pow(0.98, frameFactor);
+        const velocityDamping = Math.pow(0.982, frameFactor);
         translationVelocity.multiplyScalar(velocityDamping);
       }
 
       const bounds = viewportBoundsRef.current;
       const scale = Math.max(scaleRef.current, 0.0001);
       const sphereRadius = boundingSphereRef.current.radius * scale;
-      const limitX = Math.max(bounds.x - sphereRadius, 0);
-      const limitY = Math.max(bounds.y - sphereRadius, 0);
+      const marginX = bounds.x * 0.05;
+      const marginY = bounds.y * 0.05;
+      const limitX = Math.max(bounds.x - marginX, 0);
+      const limitY = Math.max(bounds.y - marginY, 0);
 
       if (parentGroup.position.x > limitX) {
         parentGroup.position.x = limitX;
-        translationVelocity.x = -Math.abs(translationVelocity.x) * 0.76;
+        translationVelocity.x = -Math.abs(translationVelocity.x) * 0.72;
       } else if (parentGroup.position.x < -limitX) {
         parentGroup.position.x = -limitX;
-        translationVelocity.x = Math.abs(translationVelocity.x) * 0.76;
+        translationVelocity.x = Math.abs(translationVelocity.x) * 0.72;
       }
 
       if (parentGroup.position.y > limitY) {
         parentGroup.position.y = limitY;
-        translationVelocity.y = -Math.abs(translationVelocity.y) * 0.76;
+        translationVelocity.y = -Math.abs(translationVelocity.y) * 0.72;
       } else if (parentGroup.position.y < -limitY) {
         parentGroup.position.y = -limitY;
-        translationVelocity.y = Math.abs(translationVelocity.y) * 0.76;
+        translationVelocity.y = Math.abs(translationVelocity.y) * 0.72;
       }
 
       // Apply rotation velocity with damping/inertia plus autonomous rotation
@@ -569,13 +599,14 @@ const DeepMatrixVisualization: React.FC<DeepMatrixVisualizationProps> = ({
     if (!group) {
       return;
     }
-    const clamped = Math.max(0.1, Math.min(21, scaleMultiplier));
+    const clamped = Math.max(0.1, Math.min(21, scaleMultiplier * BASE_SCALE));
     group.scale.set(clamped, clamped, clamped);
     scaleRef.current = clamped;
     const bounds = viewportBoundsRef.current;
-    const sphereRadius = boundingSphereRef.current.radius * clamped;
-    const limitX = Math.max(bounds.x - sphereRadius, 0);
-    const limitY = Math.max(bounds.y - sphereRadius, 0);
+    const marginX = bounds.x * 0.05;
+    const marginY = bounds.y * 0.05;
+    const limitX = Math.max(bounds.x - marginX, 0);
+    const limitY = Math.max(bounds.y - marginY, 0);
     group.position.x = THREE.MathUtils.clamp(group.position.x, -limitX, limitX);
     group.position.y = THREE.MathUtils.clamp(group.position.y, -limitY, limitY);
   }, [scaleMultiplier]);

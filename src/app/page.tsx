@@ -68,36 +68,38 @@ const Home: React.FC = () => {
         </div>
         <div className="absolute inset-0 -z-20 bg-black/60" />
 
-        <div className="relative z-10 mx-auto flex w-full max-w-6xl flex-col gap-10 text-left sm:gap-12 md:flex-row md:items-center md:justify-between">
-          <div className="flex w-full flex-col gap-4 px-4 sm:gap-6 md:max-w-xl md:px-0">
-            <div className="flex items-center gap-0">
+        <div className="absolute inset-0 z-0 pointer-events-auto">
+          <DeepMatrixVisualization
+            stackCount={1}
+            layerCount={8}
+            tokenCount={64}
+            horizontalSpacing={21.33}
+            verticalSpacing={21.33}
+            stackSpacing={21.33}
+            layerSpacing={21.33}
+            maxConnectionsPerToken={8}
+            connectionColor="blue"
+            cameraZoom={9.0}
+            activationChance={0.01}
+            fadeSpeed={0.5}
+            scaleMultiplier={matrixScale}
+          />
+        </div>
+
+        <div className="relative z-10 mx-auto flex w-full max-w-6xl flex-col gap-10 text-left sm:gap-12 md:flex-row md:items-center md:justify-between pointer-events-none">
+          <div className="flex w-full flex-col gap-4 px-4 sm:gap-6 md:max-w-xl md:px-0 pointer-events-none">
+            <div className="flex items-center gap-0 pointer-events-none">
               <h1 className="text-4xl font-semibold tracking-tight text-white sm:text-5xl md:text-6xl">Vince Li</h1>
-              <PulsingDownload onRadiusChange={handleRadiusChange} />
+              <div className="pointer-events-auto">
+                <PulsingDownload onRadiusChange={handleRadiusChange} />
+              </div>
             </div>
             <p className="text-lg font-light leading-relaxed tracking-tight text-gray-200 sm:text-xl md:text-2xl">
               Full-stack engineer specializing in React, TypeScript, and Python. Building high-performance frontends and scalable data systems with modern ML/AI integration.
             </p>
           </div>
 
-          <div className="relative z-40 flex w-full shrink-0 justify-center px-4 md:w-1/2 md:justify-end md:px-0">
-            <div className="h-72 w-72 sm:h-96 sm:w-96 md:h-[28rem] md:w-[28rem] md:sticky md:top-16">
-              <DeepMatrixVisualization
-                stackCount={1}
-                layerCount={8}
-                tokenCount={64}
-                horizontalSpacing={21.33}
-                verticalSpacing={21.33}
-                stackSpacing={21.33}
-                layerSpacing={21.33}
-                maxConnectionsPerToken={8}
-                connectionColor="blue"
-                cameraZoom={9.0}
-                activationChance={0.01}
-                fadeSpeed={0.5}
-                scaleMultiplier={matrixScale}
-              />
-            </div>
-          </div>
+          <div className="hidden md:block" />
         </div>
       </div>
 

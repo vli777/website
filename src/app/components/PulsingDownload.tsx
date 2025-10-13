@@ -11,6 +11,7 @@ const directDownloadLink = googleDriveShareLink
 
 const BASE_SIZE = 14;
 const HOVER_SIZE = 32;
+const CORE_GLOW = "rgba(8, 3, 79, 1)"; // #08034f
 const GLOW_RING = "rgba(14, 8, 58, 1)";
 const GLOW_HALO = "rgba(10, 8, 38, 1)"; // #0a0826
 const REST_GLOW = "rgba(11, 10, 30, 0.3)";
@@ -52,11 +53,12 @@ const PulsingDownload = ({ onRadiusChange }: PulsingDownloadProps) => {
   }, [hovered, notifyRadius]);
 
   const size = hovered ? HOVER_SIZE : BASE_SIZE;
-  const ringSize = hovered ? size + 30 : size + 22;
-  const ringOpacity = hovered ? 0.9 : 0.65;
+  const ringDiameter = HOVER_SIZE + 16; // ring matches max radius
+  const ringClassName = hovered ? "neon-ring neon-ring-hover" : "neon-ring";
 
   return (
     <div
+      className="relative z-30"
       style={{
         minWidth: "64px",
         minHeight: "64px",
@@ -67,13 +69,13 @@ const PulsingDownload = ({ onRadiusChange }: PulsingDownloadProps) => {
     >
       <div className="relative flex items-center justify-center">
         <span
-          className="neon-ring"
+          className={ringClassName}
           style={{
-            width: `${ringSize}px`,
-            height: `${ringSize}px`,
-            opacity: ringOpacity,
+            width: `${ringDiameter}px`,
+            height: `${ringDiameter}px`,
           }}
         />
+
         <a
           ref={anchorRef}
           href={directDownloadLink}
@@ -84,12 +86,12 @@ const PulsingDownload = ({ onRadiusChange }: PulsingDownloadProps) => {
             width: `${size}px`,
             height: `${size}px`,
             padding: hovered ? "6px" : "0",
-          background: hovered
-            ? `radial-gradient(circle, ${CORE_GLOW} 0%, rgba(8,3,79,0.78) 22%, ${GLOW_RING} 48%, ${GLOW_HALO} 88%)`
-            : `radial-gradient(circle, rgba(8,3,79,0.55) 0%, rgba(10,6,66,0.35) 24%, ${GLOW_RING} 46%, ${GLOW_HALO} 88%)`,
+            background: hovered
+              ? `radial-gradient(circle, ${CORE_GLOW} 0%, rgba(8,3,79,0.78) 22%, ${GLOW_RING} 48%, ${GLOW_HALO} 88%)`
+              : `radial-gradient(circle, rgba(8,3,79,0.5) 0%, rgba(10,6,66,0.32) 24%, ${GLOW_RING} 46%, ${GLOW_HALO} 88%)`,
             boxShadow: hovered
               ? `0 0 28px ${GLOW_RING}, 0 0 52px ${GLOW_HALO}`
-              : `0 0 8px ${REST_GLOW}, 0 0 18px ${GLOW_RING}`,
+              : `0 0 8px ${REST_GLOW}, 0 0 14px ${GLOW_RING}`,
             animation: hovered ? "none" : "pulse-glow 3s ease-in-out infinite",
           }}
           onMouseEnter={() => {
@@ -129,32 +131,66 @@ const PulsingDownload = ({ onRadiusChange }: PulsingDownloadProps) => {
           position: absolute;
           left: 50%;
           top: 50%;
-          transform: translate(-50%, -50%);
+          transform: translate(-50%, -50%) scale(0.9);
+          width: 100%;
+          height: 100%;
           border-radius: 9999px;
           pointer-events: none;
+          opacity: 0;
           mix-blend-mode: screen;
-          background: conic-gradient(
-            from 0deg,
-            rgba(8,3,79,0) 0deg,
-            rgba(138, 43, 226, 0.45) 40deg,
-            rgba(56, 189, 248, 0.35) 120deg,
-            rgba(250, 204, 21, 0.35) 200deg,
-            rgba(8,3,79,0) 340deg,
-            rgba(8,3,79,0) 360deg
-          );
-          box-shadow: 0 0 24px rgba(80, 59, 255, 0.35);
-          filter: blur(0.8px);
-          animation: ringSweep 3s linear infinite;
-          mask: radial-gradient(circle, transparent calc(100% - 6px), black calc(100% - 2px));
-          -webkit-mask: radial-gradient(circle, transparent calc(100% - 6px), black calc(100% - 2px));
+          border: 3px solid rgba(98, 80, 255, 0.18);
+          border-top-color: rgba(147, 129, 255, 0.92);
+          border-right-color: rgba(110, 93, 255, 0.6);
+          border-bottom-color: rgba(76, 68, 200, 0.18);
+          border-left-color: rgba(76, 68, 200, 0);
+          box-shadow: 0 0 16px rgba(108, 90, 255, 0.35);
+          animation: ringSpin 2s linear infinite, ringPulse 2s ease-out infinite;
         }
 
-        @keyframes ringSweep {
+        .neon-ring-hover {
+          opacity: 1 !important;
+          border-color: rgba(255, 255, 255, 0.25);
+          border-top-color: rgba(255, 255, 255, 0.9);
+          border-right-color: rgba(255, 255, 255, 0.6);
+          box-shadow: 0 0 38px rgba(255, 255, 255, 0.85);
+          animation: ringSpinFast 0.45s linear infinite !important;
+        }
+
+        @keyframes ringSpin {
           from {
-            transform: translate(-50%, -50%) rotate(0deg);
+            transform: translate(-50%, -50%) scale(0.9) rotate(0deg);
           }
           to {
-            transform: translate(-50%, -50%) rotate(360deg);
+            transform: translate(-50%, -50%) scale(0.9) rotate(360deg);
+          }
+        }
+
+        @keyframes ringSpinFast {
+          from {
+            transform: translate(-50%, -50%) scale(0.95) rotate(0deg);
+          }
+          to {
+            transform: translate(-50%, -50%) scale(0.95) rotate(360deg);
+          }
+        }
+
+        @keyframes ringPulse {
+          0% {
+            opacity: 0;
+            transform: translate(-50%, -50%) scale(0.7) rotate(0deg);
+          }
+          10% {
+            opacity: 0.9;
+          }
+          35% {
+            opacity: 0.4;
+          }
+          68% {
+            opacity: 0.08;
+          }
+          100% {
+            opacity: 0;
+            transform: translate(-50%, -50%) scale(1) rotate(360deg);
           }
         }
       `}</style>

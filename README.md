@@ -1,7 +1,5 @@
 # Personal Website
 
-This is the source for [https://lv-argo-vesta.vercel.app/](https://lv-argo-vesta.vercel.app/), a Next.js site deployed on Vercel.
-
 ## Prerequisites
 - Node.js 18.17 or newer (Next.js 15 requirement)
 - npm (bundled with Node)
@@ -31,4 +29,5 @@ npm run lint
 
 ## Deployment
 The project is configured for Vercel. Push to the main branch (or trigger a manual deploy in the Vercel dashboard) to publish updates.
+
 

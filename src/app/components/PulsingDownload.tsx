@@ -11,6 +11,10 @@ const directDownloadLink = googleDriveShareLink
 
 const BASE_SIZE = 14;
 const HOVER_SIZE = 32;
+const CORE_GLOW = "rgba(8, 3, 79, 1)"; // #08034f
+const GLOW_RING = "rgba(14, 8, 58, 1)";
+const GLOW_HALO = "rgba(10, 8, 38, 1)"; // #0a0826
+const REST_GLOW = "rgba(11, 10, 30, 0.3)";
 
 interface PulsingDownloadProps {
   onRadiusChange?: (radius: number) => void;
@@ -70,11 +74,12 @@ const PulsingDownload = ({ onRadiusChange }: PulsingDownloadProps) => {
           width: `${size}px`,
           height: `${size}px`,
           padding: hovered ? "6px" : "0",
-          background:
-            "radial-gradient(circle, rgba(240, 245, 255, 1) 0%, rgba(220, 220, 255, 1) 8%, rgba(190, 180, 255, 0.95) 18%, rgba(160, 160, 255, 0.88) 30%, rgba(130, 145, 250, 0.75) 45%, rgba(90, 150, 255, 0.65) 58%, rgba(70, 140, 250, 0.5) 68%, rgba(60, 120, 230, 0.35) 78%, rgba(50, 100, 210, 0.2) 88%, rgba(40, 80, 190, 0.08) 100%)",
+          background: hovered
+            ? `radial-gradient(circle, rgba(8,3,79,0.9) 0%, rgba(8,3,79,0.75) 22%, ${GLOW_RING} 48%, ${GLOW_HALO} 88%)`
+            : `radial-gradient(circle, rgba(8,3,79,0.55) 0%, rgba(10,6,66,0.35) 24%, ${GLOW_RING} 46%, ${GLOW_HALO} 88%)`,
           boxShadow: hovered
-            ? "0 0 20px rgba(80, 100, 255, 0.8), 0 0 40px rgba(60, 80, 220, 0.6), inset 0 0 10px rgba(255, 255, 255, 0.6)"
-            : "0 0 8px rgba(80, 100, 255, 0.6), 0 0 16px rgba(60, 80, 220, 0.4)",
+            ? `0 0 28px ${GLOW_RING}, 0 0 52px ${GLOW_HALO}`
+            : `0 0 8px ${REST_GLOW}, 0 0 18px ${GLOW_RING}`,
           animation: hovered ? "none" : "pulse-glow 3s ease-in-out infinite",
         }}
         onMouseEnter={() => {
@@ -91,21 +96,21 @@ const PulsingDownload = ({ onRadiusChange }: PulsingDownloadProps) => {
         }}
       >
         {/* Download Icon - Hidden until hovered */}
-        <Download className="w-0 h-0 opacity-0 transition-all duration-300 ease-in-out group-hover:w-8 group-hover:h-8 group-hover:opacity-100 text-white" />
+        <Download className="w-0 h-0 opacity-0 transition-all duration-300 ease-in-out group-hover:w-8 group-hover:h-8 group-hover:opacity-100 text-white drop-shadow-[0_0_12px_rgba(10,8,38,0.85)]" />
       </a>
       <style jsx>{`
         @keyframes pulse-glow {
           0%,
           100% {
             transform: scale(1);
-            box-shadow: 0 0 8px rgba(80, 100, 255, 0.6),
-              0 0 16px rgba(60, 80, 220, 0.4);
+            box-shadow: 0 0 8px ${GLOW_RING},
+              0 0 16px ${REST_GLOW};
           }
           50% {
             transform: scale(1.3);
-            box-shadow: 0 0 20px rgba(80, 100, 255, 1),
-              0 0 40px rgba(60, 80, 220, 0.8),
-              0 0 60px rgba(60, 80, 220, 0.6);
+            box-shadow: 0 0 20px ${GLOW_RING},
+              0 0 40px ${GLOW_HALO},
+              0 0 60px ${GLOW_HALO};
           }
         }
       `}</style>

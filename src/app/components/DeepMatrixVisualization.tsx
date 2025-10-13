@@ -134,10 +134,48 @@ const DeepMatrixVisualization: React.FC<DeepMatrixVisualizationProps> = ({
     const allTokenPositions: THREE.Vector3[][][] = []; // [stack][layer][token]
     const allPointsObjects: THREE.Points[] = []; // Keep track of Points objects for size animation
     const pointsMaterial = new THREE.PointsMaterial({
-      color: 0xffffff, // White points
-      size: 0.2,       // Smaller default max size
+      color: 0xffffff,
+      size: 0.2,
+      transparent: true,
+      opacity: 0.5,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+      sizeAttenuation: true,
     });
     const boundingBox = new THREE.Box3();
+
+    // Glow mesh and material
+    const glowGeometry = new THREE.SphereGeometry(1, 32, 32);
+    const glowMaterial = new THREE.ShaderMaterial({
+      uniforms: {
+        glowColor: { value: new THREE.Color(0x798394) },
+        opacity: { value: 0.35 }
+      },
+      vertexShader: `
+        varying float intensity;
+        void main() {
+          vec3 vNormal = normalize( normalMatrix * normal );
+          intensity = pow( 0.8 - dot( vNormal, vec3( 0.0, 0.0, 1.0 ) ), 2.0 );
+          gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+        }
+      `,
+      fragmentShader: `
+        uniform vec3 glowColor;
+        uniform float opacity;
+        varying float intensity;
+        void main() {
+          vec3 glow = glowColor * intensity * opacity;
+          gl_FragColor = vec4( glow, 1.0 );
+        }
+      `,
+      side: THREE.BackSide,
+      blending: THREE.AdditiveBlending,
+      transparent: true
+    });
+
+    const glowMesh = new THREE.Mesh(glowGeometry, glowMaterial);
+    glowMesh.visible = false;
+    parentGroup.add(glowMesh);
 
     for (let stackIndex = 0; stackIndex < stackCount; stackIndex++) {
       const stackY = stackIndex * stackSpacing - offsetY;
@@ -171,8 +209,14 @@ const DeepMatrixVisualization: React.FC<DeepMatrixVisualizationProps> = ({
       })
     );
 
+    let glowBaseScale = 0;
     if (!boundingBox.isEmpty()) {
       boundingBox.getBoundingSphere(boundingSphereRef.current);
+      if (boundingSphereRef.current.radius > 0) {
+        glowBaseScale = boundingSphereRef.current.radius * 1.25;
+        glowMesh.scale.setScalar(glowBaseScale);
+        glowMesh.visible = true;
+      }
     }
 
     /**
@@ -241,7 +285,9 @@ const DeepMatrixVisualization: React.FC<DeepMatrixVisualizationProps> = ({
     const lineMaterial = new THREE.LineBasicMaterial({
       vertexColors: true,
       transparent: true,
-      opacity: 0.6,
+      opacity: 0.4,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
     });
 
     const lineSegments = new THREE.LineSegments(lineGeometry, lineMaterial);
@@ -252,7 +298,18 @@ const DeepMatrixVisualization: React.FC<DeepMatrixVisualizationProps> = ({
      */
     const colorAttribute = lineGeometry.getAttribute('color') as THREE.BufferAttribute;
     const targetColorObj = new THREE.Color(connectionColor);
-    const grayColorObj = new THREE.Color(0.6, 0.6, 0.6);
+    const grayColorObj = new THREE.Color(0.35, 0.45, 0.6);
+    const glowCoreColor = new THREE.Color(0xffffff);
+    const glowRingColor = new THREE.Color(0xa855f7);
+    const glowHaloColor = new THREE.Color(0x38bdf8);
+    const iridescentPalette = [
+      new THREE.Color(0x22d3ee), // teal
+      new THREE.Color(0xfacc15), // yellow
+      new THREE.Color(0xfb923c), // orange
+    ];
+    const currentGlowColor = new THREE.Color();
+    const baseLineColor = new THREE.Color(0x1b2240);
+    const restGlowColor = new THREE.Color(baseLineColor).lerp(new THREE.Color(0xffffff), 0.06);
 
     // Throttle activation checks (only check a subset each frame)
     let activationCheckIndex = 0;
@@ -268,6 +325,7 @@ const DeepMatrixVisualization: React.FC<DeepMatrixVisualizationProps> = ({
 
     // Interactive rotation state (mouse-driven with inertia)
     const rotationVelocity = new THREE.Vector3(0, 0, 0);
+    const maxSpinMagnitude = 2.2;
     const lastPointer = new THREE.Vector2();
     let isDragging = false;
     const rotationClamp = Math.PI / 2;
@@ -352,9 +410,8 @@ const DeepMatrixVisualization: React.FC<DeepMatrixVisualizationProps> = ({
       const angleFactor = Math.min(1.8, speedBoost + 0.4);
       rotationVelocity.y += (deltaX * 0.0012) * angleFactor;
       rotationVelocity.x += (deltaY * 0.0012) * angleFactor;
-      const rotationCap = 2.2;
-      if (rotationVelocity.length() > rotationCap) {
-        rotationVelocity.setLength(rotationCap);
+      if (rotationVelocity.length() > maxSpinMagnitude) {
+        rotationVelocity.setLength(maxSpinMagnitude);
       }
 
       const impulseScale = baseImpulse * (1 + speedBoost);
@@ -419,6 +476,32 @@ const DeepMatrixVisualization: React.FC<DeepMatrixVisualizationProps> = ({
       const deltaSeconds = deltaTime / 1000;
       const frameFactor = Math.min(deltaSeconds * 60, 3);
 
+      const spinMagnitude = rotationVelocity.length();
+      const autoSpinMagnitude = autoRotation.length();
+      const spinIntensity = THREE.MathUtils.clamp((spinMagnitude + autoSpinMagnitude * 3) / maxSpinMagnitude, 0, 1);
+      const easedIntensity = THREE.MathUtils.smoothstep(spinIntensity, 0, 1);
+      const glowIntensity = easedIntensity;
+      const paletteChoice = iridescentPalette[Math.floor(Math.random() * iridescentPalette.length)];
+      const spectralColor = glowRingColor.clone()
+        .lerp(glowHaloColor, glowIntensity)
+        .lerp(paletteChoice, glowIntensity * 0.55)
+        .lerp(glowCoreColor, Math.pow(glowIntensity, 0.6));
+      currentGlowColor.copy(restGlowColor).lerp(spectralColor, glowIntensity);
+      pointsMaterial.color.copy(currentGlowColor);
+      pointsMaterial.opacity = 0.05 + glowIntensity * 0.45;
+      pointsMaterial.needsUpdate = true;
+      lineMaterial.opacity = 0.08 + glowIntensity * 0.35;
+      lineMaterial.needsUpdate = true;
+      grayColorObj.copy(baseLineColor).lerp(currentGlowColor, 0.3 + glowIntensity * 0.5);
+      const glowScale = glowBaseScale * Math.max(scaleRef.current, 0.1) * (1.05 + glowIntensity * 0.55);
+      if (glowBaseScale > 0) {
+        glowMesh.visible = glowIntensity > 0.02;
+        glowMesh.scale.setScalar(glowScale);
+        glowMaterial.opacity = glowIntensity * 0.35;
+        glowMaterial.needsUpdate = true;
+      }
+      targetColorObj.copy(currentGlowColor);
+
       // Update autonomous rotation target occasionally
       if (Math.random() < 0.01) {
         targetAutoRotation.set(
@@ -437,8 +520,6 @@ const DeepMatrixVisualization: React.FC<DeepMatrixVisualizationProps> = ({
       }
 
       const bounds = viewportBoundsRef.current;
-      const scale = Math.max(scaleRef.current, 0.0001);
-      const sphereRadius = boundingSphereRef.current.radius * scale;
       const marginX = bounds.x * 0.05;
       const marginY = bounds.y * 0.05;
       const limitX = Math.max(bounds.x - marginX, 0);
@@ -486,7 +567,8 @@ const DeepMatrixVisualization: React.FC<DeepMatrixVisualizationProps> = ({
         const diff = data.targetSize - data.currentSize;
         if (Math.abs(diff) > 0.001) {
           data.currentSize += diff * data.pulseSpeed;
-          (pointsObj.material as THREE.PointsMaterial).size = data.currentSize;
+      const spinSizeMultiplier = 0.7 + glowIntensity * 0.95;
+          (pointsObj.material as THREE.PointsMaterial).size = data.currentSize * spinSizeMultiplier;
         }
 
         // Check if it's time to pick a new target size

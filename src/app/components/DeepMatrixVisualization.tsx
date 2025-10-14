@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 
 interface DeepMatrixVisualizationProps {
@@ -25,6 +25,21 @@ interface DeepMatrixVisualizationProps {
 
 
 const BASE_SCALE = 0.5;
+const canUseWebGL = () => {
+  if (typeof window === 'undefined') {
+    return false;
+  }
+  try {
+    const canvas = document.createElement('canvas');
+    const gl =
+      canvas.getContext('webgl2') ||
+      canvas.getContext('webgl') ||
+      canvas.getContext('experimental-webgl');
+    return Boolean(gl);
+  } catch {
+    return false;
+  }
+};
 
 const DeepMatrixVisualization: React.FC<DeepMatrixVisualizationProps> = ({
   stackCount,
@@ -56,10 +71,16 @@ const DeepMatrixVisualization: React.FC<DeepMatrixVisualizationProps> = ({
   const pointerTimeRef = useRef(0);
   const scaleRef = useRef(1);
   const boundingSphereRef = useRef(new THREE.Sphere(new THREE.Vector3(), 1));
+  const [isSupported, setIsSupported] = useState(true);
 
   useEffect(() => {
     const container = mountRef.current;
     if (!container) return;
+    if (!canUseWebGL()) {
+      setIsSupported(false);
+      return;
+    }
+    setIsSupported(true);
     const translationVelocity = translationVelocityRef.current;
     const pointerPosition = pointerPositionRef.current;
     pointerTimeRef.current = typeof performance !== 'undefined' ? performance.now() : Date.now();
@@ -91,7 +112,14 @@ const DeepMatrixVisualization: React.FC<DeepMatrixVisualizationProps> = ({
     camera.position.set(0, 0, cameraDistance);
     camera.lookAt(new THREE.Vector3(0, 0, 0));
 
-    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });
+    let renderer: THREE.WebGLRenderer;
+    try {
+      renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });
+    } catch (error) {
+      console.warn("WebGL renderer initialization failed:", error);
+      setIsSupported(false);
+      return;
+    }
 
     const resizeRenderer = () => {
       const rect = container.getBoundingClientRect();
@@ -693,7 +721,32 @@ const DeepMatrixVisualization: React.FC<DeepMatrixVisualizationProps> = ({
     group.position.y = THREE.MathUtils.clamp(group.position.y, -limitY, limitY);
   }, [scaleMultiplier]);
 
-  return <div ref={mountRef} style={{ width: '100%', height: '100%', background: 'transparent' }} />;
+  return (
+    <div
+      ref={mountRef}
+      style={{ position: 'relative', width: '100%', height: '100%', background: 'transparent' }}
+    >
+      {!isSupported && (
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: 'rgba(8, 11, 23, 0.65)',
+            color: '#c5ddff',
+            fontSize: '0.8rem',
+            letterSpacing: '0.12em',
+            textTransform: 'uppercase',
+            pointerEvents: 'none'
+          }}
+        >
+          WebGL unavailable
+        </div>
+      )}
+    </div>
+  );
 };
 
 export default DeepMatrixVisualization;

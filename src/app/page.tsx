@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import dynamic from "next/dynamic";
 import PulsingDownload from "./components/PulsingDownload";
 import imageData from "./imageData.json";
@@ -25,6 +25,7 @@ const Home: React.FC = () => {
   const [selectedImage, setSelectedImage] = useState<VisualizationImage | null>(null);
   const [downloadRadius, setDownloadRadius] = useState<number | null>(null);
   const [baseRadius, setBaseRadius] = useState<number | null>(null);
+  const [isMobile, setIsMobile] = useState(false);
   const heroImages = typedImages.slice(0, 6);
   const additionalImages = typedImages.slice(6);
 
@@ -49,61 +50,116 @@ const Home: React.FC = () => {
     return Math.min(21, Math.max(1, ratio));
   }, [downloadRadius, baseRadius]);
 
+  useEffect(() => {
+    const updateLayoutMetrics = () => {
+      if (typeof window === "undefined") {
+        return;
+      }
+      document.documentElement.style.setProperty("--viewport-height", `${window.innerHeight}px`);
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    updateLayoutMetrics();
+    window.addEventListener("resize", updateLayoutMetrics);
+    window.addEventListener("orientationchange", updateLayoutMetrics);
+
+    return () => {
+      window.removeEventListener("resize", updateLayoutMetrics);
+      window.removeEventListener("orientationchange", updateLayoutMetrics);
+      document.documentElement.style.removeProperty("--viewport-height");
+    };
+  }, []);
+
+  const visualizationSettings = useMemo(() => {
+    if (isMobile) {
+      return {
+        layerCount: 6,
+        tokenCount: 36,
+        horizontalSpacing: 12,
+        verticalSpacing: 12,
+        stackSpacing: 14,
+        layerSpacing: 14,
+        maxConnectionsPerToken: 6,
+        cameraZoom: 7,
+        activationChance: 0.012,
+        fadeSpeed: 0.42,
+      };
+    }
+
+    return {
+      layerCount: 8,
+      tokenCount: 64,
+      horizontalSpacing: 21.33,
+      verticalSpacing: 21.33,
+      stackSpacing: 21.33,
+      layerSpacing: 21.33,
+      maxConnectionsPerToken: 8,
+      cameraZoom: 9,
+      activationChance: 0.01,
+      fadeSpeed: 0.5,
+    };
+  }, [isMobile]);
+
+  const visualizationScale = useMemo(
+    () => (isMobile ? matrixScale * 0.8 : matrixScale),
+    [isMobile, matrixScale]
+  );
+
   return (
     <>
-      <div className="flex h-screen flex-col gap-2 overflow-y-scroll snap-y snap-mandatory md:min-h-screen md:h-auto md:overflow-y-auto md:snap-none">
-      {/* Hero Section */}
-      <div className="snap-start md:snap-align-none relative flex h-screen flex-col justify-center text-white">
-        {/* Background video */}
-        <div className="absolute inset-0 -z-30">
-          <video
-            className="h-full w-full object-cover"
-            src="/asset_universe.mp4"
-            autoPlay
-            loop
-            muted
-            playsInline
-            aria-hidden={true}
-          />
-        </div>
-        <div className="absolute inset-0 -z-20 bg-black/60" />
+      <div
+        className="flex flex-col gap-2 overflow-y-scroll snap-y snap-mandatory md:min-h-screen md:h-auto md:overflow-y-auto md:snap-none"
+        style={{ minHeight: "var(--viewport-height, 100vh)" }}
+      >
+        {/* Hero Section */}
+        <div
+          className="snap-start md:snap-align-none relative flex flex-col justify-center text-white md:h-screen"
+          style={{
+            minHeight: "var(--viewport-height, 100vh)",
+            height: "var(--viewport-height, 100vh)",
+          }}
+        >
+          {/* Background video */}
+          <div className="absolute inset-0 -z-30">
+            <video
+              className="h-full w-full object-cover"
+              src="/asset_universe.mp4"
+              autoPlay
+              loop
+              muted
+              playsInline
+              aria-hidden={true}
+            />
+          </div>
+          <div className="absolute inset-0 -z-20 bg-black/60" />
 
-        <div className="absolute inset-0 z-0 pointer-events-auto">
-          <DeepMatrixVisualization
-            stackCount={1}
-            layerCount={8}
-            tokenCount={64}
-            horizontalSpacing={21.33}
-            verticalSpacing={21.33}
-            stackSpacing={21.33}
-            layerSpacing={21.33}
-            maxConnectionsPerToken={8}
-            connectionColor="blue"
-            cameraZoom={9.0}
-            activationChance={0.01}
-            fadeSpeed={0.5}
-            scaleMultiplier={matrixScale}
-          />
-        </div>
-
-        <div className="relative z-10 mx-auto flex w-full max-w-6xl flex-col gap-10 text-left sm:gap-12 md:flex-row md:items-center md:justify-between pointer-events-none">
-          <div className="flex w-full flex-col gap-4 px-4 sm:gap-6 md:max-w-xl md:px-0 pointer-events-none">
-            <div className="flex items-center gap-0 pointer-events-none">
-              <h1 className="text-4xl font-semibold tracking-tight text-white sm:text-5xl md:text-6xl">Vince Li</h1>
-              <div className="pointer-events-auto">
-                <PulsingDownload onRadiusChange={handleRadiusChange} />
-              </div>
-            </div>
-            <p className="text-lg font-light leading-relaxed tracking-tight text-gray-200 sm:text-xl md:text-2xl">
-              Full-stack engineer specializing in React, TypeScript, and Python. Building high-performance frontends and scalable data systems with modern ML/AI integration.
-            </p>
+          <div className="absolute inset-0 z-0 pointer-events-auto">
+            <DeepMatrixVisualization
+              stackCount={1}
+              {...visualizationSettings}
+              connectionColor="blue"
+              scaleMultiplier={visualizationScale}
+            />
           </div>
 
-          <div className="hidden md:block" />
-        </div>
-      </div>
+          <div className="relative z-10 mx-auto flex w-full max-w-6xl flex-col gap-10 text-left sm:gap-12 md:flex-row md:items-center md:justify-between pointer-events-none">
+            <div className="flex w-full flex-col gap-4 px-4 sm:gap-6 md:max-w-xl md:px-0 pointer-events-none">
+              <div className="flex items-center gap-0 pointer-events-none">
+                <h1 className="text-4xl font-semibold tracking-tight text-white sm:text-5xl md:text-6xl">Vince Li</h1>
+                <div className="pointer-events-auto">
+                  <PulsingDownload onRadiusChange={handleRadiusChange} />
+                </div>
+              </div>
+              <p className="text-lg font-light leading-relaxed tracking-tight text-gray-200 sm:text-xl md:text-2xl">
+                Full-stack engineer specializing in React, TypeScript, and Python. Building high-performance frontends and scalable data systems with modern ML/AI integration.
+              </p>
+            </div>
 
-      {/* Hero content grid below landing section */}
+            <div className="hidden md:block" />
+          </div>
+        </div>
+
+        {/* Hero content grid below landing section */}
         <section className="snap-start md:snap-align-none grid gap-2 grid-cols-1 sm:grid-cols-2 auto-rows-[minmax(500px,1fr)]">
           {heroImages.map((img, index) => (
             <ImageCard
@@ -115,8 +171,8 @@ const Home: React.FC = () => {
           ))}
         </section>
 
-      {/* Additional panels if more content is provided */}
-      {additionalImages.length > 0 && (
+        {/* Additional panels if more content is provided */}
+        {additionalImages.length > 0 && (
           <section className="snap-start md:snap-align-none grid gap-2 grid-cols-1 sm:grid-cols-2 auto-rows-[minmax(500px,1fr)]">
             {additionalImages.map((img, index) => (
               <ImageCard
@@ -127,12 +183,12 @@ const Home: React.FC = () => {
               />
             ))}
           </section>
-      )}
+        )}
 
-      <footer className="snap-start md:snap-align-none flex flex-col items-center justify-center gap-2 py-8 text-center text-sm text-gray-400">
-        <p>© {new Date().getFullYear()} Vince Li. All rights reserved.</p>
-        <p className="text-xs text-gray-500">Crafted with React, Next.js, and a hint of GPU magic.</p>
-      </footer>
+        <footer className="snap-start md:snap-align-none flex flex-col items-center justify-center gap-2 py-8 text-center text-sm text-gray-400">
+          <p>© {new Date().getFullYear()} Vince Li. All rights reserved.</p>
+          <p className="text-xs text-gray-500">Crafted with React, Next.js, and a hint of GPU magic.</p>
+        </footer>
       </div>
       {selectedImage && (
         <ImageModal image={selectedImage} onClose={handleModalClose} />

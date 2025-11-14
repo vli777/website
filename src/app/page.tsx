@@ -101,19 +101,19 @@ const Home: React.FC = () => {
   }, [isMobile]);
 
   const visualizationScale = useMemo(
-    () => (isMobile ? matrixScale * 0.8 : matrixScale),
+    () => (isMobile ? matrixScale * 0.5 : matrixScale),
     [isMobile, matrixScale]
   );
 
   return (
     <>
       <div
-        className="flex flex-col gap-2 overflow-y-scroll snap-y snap-mandatory md:min-h-screen md:h-auto md:overflow-y-auto md:snap-none"
+        className="flex flex-col gap-2 overflow-y-auto md:min-h-screen md:h-auto md:snap-none"
         style={{ minHeight: "var(--viewport-height, 100vh)" }}
       >
         {/* Hero Section */}
         <div
-          className="snap-start md:snap-align-none relative flex flex-col justify-center text-white md:h-screen"
+          className="md:snap-align-none relative flex flex-col justify-center text-white md:h-screen"
           style={{
             minHeight: "var(--viewport-height, 100vh)",
             height: "var(--viewport-height, 100vh)",
@@ -133,7 +133,7 @@ const Home: React.FC = () => {
           </div>
           <div className="absolute inset-0 -z-20 bg-black/60" />
 
-          <div className="absolute inset-0 z-0 pointer-events-auto">
+          <div className="absolute inset-0 z-0 pointer-events-none md:pointer-events-auto">
             <DeepMatrixVisualization
               stackCount={1}
               {...visualizationSettings}

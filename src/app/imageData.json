@@ -17,6 +17,12 @@
     "description": "3D slice after PCA weights projection. Optimization search space with optional constraints e.g. CVaR, \u03c3, stochastic diffusion",
     "alignment": "center"
   },
+  {    
+    "imageSrc": "/tuning.png",
+    "title": "Hyperparameter Tuning",
+    "description": "Optuna Dashboard showing GBDT tuning trials and pareto front for dual head objectives",
+    "alignment": "center"
+  },
   {
     "imageSrc": "/contributions.png",
     "title": "Risk vs Return",

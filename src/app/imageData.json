@@ -20,7 +20,7 @@
   {    
     "imageSrc": "/tuning.png",
     "title": "Hyperparameter Tuning",
-    "description": "Optuna Dashboard showing GBDT tuning trials and pareto front for dual head objectives",
+    "description": "Optuna Dashboard showing hyperparameter tuning trials and pareto front for multi-objective optimization",
     "alignment": "center"
   },
   {

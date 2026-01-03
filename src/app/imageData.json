@@ -20,7 +20,7 @@
   {    
     "imageSrc": "/tuning.png",
     "title": "Hyperparameter Tuning",
-    "description": "Optuna Dashboard showing hyperparameter tuning trials and pareto front for multi-objective optimization",
+    "description": "Optuna Dashboard for hyperparameter tuning trials",
     "alignment": "center"
   },
   {
@@ -40,5 +40,12 @@
     "title": "Cumulative Returns",
     "description": "Example portfolio highlighting period changes (3 mo. sampling in the image)",
     "alignment": "right"
+  },
+    {
+    "imageSrc": "/regime bench.png",
+    "title": "Regime Detection",
+    "description": "Comparison between an independently developed novel approach vs a newly published model benchmarked on real market data",
+    "alignment": "center"
   }
+  
 ]

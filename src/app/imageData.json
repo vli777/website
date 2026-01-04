@@ -44,7 +44,7 @@
     {
     "imageSrc": "/regime bench.png",
     "title": "Regime Detection",
-    "description": "A novel approach with autoencoders augmented with contrastive learning outperforms recently published deep AE models at a fraction of the training cost and achieve 20-30% reductions in CVaR and MDD while also preserving Sharpe above passive buy and hold strategies.",
+    "description": "Novel deep AE model outperforms recent published models, achieving 20-30% reductions in CVaR and MDD with lower training costs and preserving Sharpe vs passive benchmarks",
     "alignment": "center"
   }
   

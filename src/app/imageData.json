@@ -14,10 +14,16 @@
   {
     "imageSrc": "/optimization contour plot.png",
     "title": "Global Optimization",
-    "description": "3D optimization search space after PCA projection. Our approach enables risk-constrained nested hierarchical allocation, a feature absent in popular (5k+ star) open-source repositories",
+    "description": "Our approach enables risk-constrained nested hierarchical allocation, a feature absent in many popular (5k+ star) open-source repositories",
     "alignment": "center"
   },
-  {    
+  {
+    "imageSrc": "/regime bench.png",
+    "title": "Regime Detection",
+    "description": "Our novel Deep AE model outperforms recent published models with lower training costs and greater CVaR/MDD reductions, while maintaining Sharpe ratio, against passive and avg equal-exposure benchmarks",
+    "alignment": "center"
+  },
+  {
     "imageSrc": "/tuning.png",
     "title": "Hyperparameter Tuning",
     "description": "Optuna accelerated hyperparameter tuning",
@@ -40,12 +46,5 @@
     "title": "Cumulative Returns",
     "description": "Example portfolio highlighting period changes (3 mo. sampling in the image)",
     "alignment": "right"
-  },
-    {
-    "imageSrc": "/regime bench.png",
-    "title": "Regime Detection",
-    "description": "Our novel Deep AE model outperforms recent published models with lower training costs and greater CVaR/MDD reductions, while maintaining Sharpe ratio, against passive and avg equal-exposure benchmarks",
-    "alignment": "center"
   }
-  
 ]

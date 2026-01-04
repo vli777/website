@@ -14,13 +14,13 @@
   {
     "imageSrc": "/optimization contour plot.png",
     "title": "Global Optimization",
-    "description": "3D slice after PCA weights projection. Optimization search space with optional constraints e.g. CVaR, \u03c3, stochastic diffusion",
+    "description": "3D optimization search space after PCA projection. Our approach uniquely enables risk-constrained nested hierarchical allocation, a feature absent in popular (5k+ star) open-source repositories",
     "alignment": "center"
   },
   {    
     "imageSrc": "/tuning.png",
     "title": "Hyperparameter Tuning",
-    "description": "Optuna Dashboard for hyperparameter tuning trials",
+    "description": "Optuna accelerated hyperparameter tuning",
     "alignment": "center"
   },
   {

@@ -20,7 +20,7 @@
   {
     "imageSrc": "/regime bench.png",
     "title": "Regime Detection",
-    "description": "Our novel Deep AE model outperforms recent published models with lower training costs and greater CVaR/MDD reductions, while maintaining Sharpe ratio, against passive and avg equal-exposure benchmarks",
+    "description": "Our unsupervised deep AE model outperforms recent published regime models with much faster training and strong CVaR/MDD reductions with minimal Sharpe degradation",
     "alignment": "center"
   },
   {

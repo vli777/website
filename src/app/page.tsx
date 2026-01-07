@@ -8,7 +8,7 @@ import { ImageCard } from "./components/ImageCard";
 import ImageModal from "./components/ImageModal";
 
 const DeepMatrixVisualization = dynamic(
-  () => import('./components/DeepMatrixVisualization'),
+  () => import("./components/DeepMatrixVisualization"),
   { ssr: false }
 );
 
@@ -22,7 +22,9 @@ type VisualizationImage = {
 const typedImages = imageData as VisualizationImage[];
 
 const Home: React.FC = () => {
-  const [selectedImage, setSelectedImage] = useState<VisualizationImage | null>(null);
+  const [selectedImage, setSelectedImage] = useState<VisualizationImage | null>(
+    null
+  );
   const [downloadRadius, setDownloadRadius] = useState<number | null>(null);
   const [baseRadius, setBaseRadius] = useState<number | null>(null);
   const [isMobile, setIsMobile] = useState(false);
@@ -55,7 +57,10 @@ const Home: React.FC = () => {
       if (typeof window === "undefined") {
         return;
       }
-      document.documentElement.style.setProperty("--viewport-height", `${window.innerHeight}px`);
+      document.documentElement.style.setProperty(
+        "--viewport-height",
+        `${window.innerHeight}px`
+      );
       setIsMobile(window.innerWidth < 768);
     };
 
@@ -145,13 +150,21 @@ const Home: React.FC = () => {
           <div className="relative z-10 mx-auto flex w-full max-w-6xl flex-col gap-10 text-left sm:gap-12 md:flex-row md:items-center md:justify-between pointer-events-none">
             <div className="flex w-full flex-col gap-4 px-4 sm:gap-6 md:max-w-xl md:px-0 pointer-events-none">
               <div className="flex items-center gap-0 pointer-events-none">
-                <h1 className="text-4xl font-semibold tracking-tight text-white sm:text-5xl md:text-6xl">Vince Li</h1>
+                <h1 className="text-4xl font-semibold tracking-tight text-white sm:text-5xl md:text-6xl">
+                  Vince Li
+                </h1>
                 <div className="pointer-events-auto">
                   <PulsingDownload onRadiusChange={handleRadiusChange} />
                 </div>
               </div>
               <p className="text-lg font-light leading-relaxed tracking-tight text-gray-200 sm:text-xl md:text-2xl">
-                Full-stack engineer specializing in React, TypeScript, and Python. Building high-performance frontends and scalable data systems with modern ML/AI integration.
+                Full-stack engineer specializing in React, TypeScript, and
+                Python. Building high-performance frontends and scalable data
+                systems with modern ML/AI integration.
+              </p>
+              <p className="whitespace-pre-line text-sm font-light italic leading-relaxed tracking-tight text-gray-500 sm:text-md md:text-lg font-serif">
+                {`" The ordinary think inside of the box, the extraordinary think outside of the box, but genius thinks inside, outside, below and above the box."
+                  - Matshona Dhliwayo`}
               </p>
             </div>
 
@@ -187,7 +200,9 @@ const Home: React.FC = () => {
 
         <footer className="snap-start md:snap-align-none flex flex-col items-center justify-center gap-2 py-8 text-center text-sm text-gray-400">
           <p>© {new Date().getFullYear()} Vince Li. All rights reserved.</p>
-          <p className="text-xs text-gray-500">Crafted with React, Next.js, and a hint of GPU magic.</p>
+          <p className="text-xs text-gray-500">
+            Crafted with React, Next.js, and a hint of GPU magic.
+          </p>
         </footer>
       </div>
       {selectedImage && (

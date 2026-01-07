@@ -14,13 +14,13 @@
   {
     "imageSrc": "/optimization contour plot.png",
     "title": "Global Optimization",
-    "description": "Our approach enables risk-constrained nested hierarchical allocation, a feature absent in many popular (5k+ star) open-source repositories",
+    "description": "Risk-constrained nested hierarchical allocation models, a feature unavailable in many popular (5k+ star) open-source repositories due to the challenge of preserving structural tree geometry",
     "alignment": "center"
   },
   {
     "imageSrc": "/regime bench.png",
     "title": "Regime Detection",
-    "description": "Our unsupervised deep AE model outperforms recent published regime models with much faster training and strong CVaR/MDD reductions with minimal Sharpe degradation",
+    "description": "Novel unsupervised deep AE regime aware model that outperforms recent published models with much faster training and strong CVaR/MDD reductions amidst minimal Sharpe degradation",
     "alignment": "center"
   },
   {

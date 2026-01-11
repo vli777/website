@@ -20,7 +20,7 @@
   {
     "imageSrc": "/regime bench.png",
     "title": "Regime Detection",
-    "description": "Novel unsupervised deep AE regime detection model that outperforms recent published models with much faster training and strong tail risk reduction",
+    "description": "Novel unsupervised deep AE regime detection and response model trains in a fraction of the time as alternatives and achieves comparable or greater CVaR and MDD reduction while preserving performance vs baselines",
     "alignment": "center"
   },
   {

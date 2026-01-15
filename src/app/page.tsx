@@ -162,10 +162,6 @@ const Home: React.FC = () => {
                 Python. Building high-performance frontends and scalable data
                 systems with modern ML/AI integration.
               </p>
-              <p className="whitespace-pre-line text-sm font-light italic leading-relaxed tracking-tight text-gray-500 sm:text-md md:text-lg font-serif">
-                {`" The ordinary think inside of the box, the extraordinary think outside of the box, but genius thinks inside, outside, below and above the box."
-                  - Matshona Dhliwayo`}
-              </p>
             </div>
 
             <div className="hidden md:block" />

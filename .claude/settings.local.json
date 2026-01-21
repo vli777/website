@@ -3,7 +3,11 @@
     "allow": [
       "Bash(npm run build)",
       "Read(//c/Users/Nyan/Downloads/**)",
-      "Read(//c/Users/Nyan/Pictures/Screenshots/**)"
+      "Read(//c/Users/Nyan/Pictures/Screenshots/**)",
+      "Bash(npm install:*)",
+      "Bash(dir:*)",
+      "Bash(npx tsc:*)",
+      "Bash(npm run lint:*)"
     ],
     "deny": [],
     "ask": []

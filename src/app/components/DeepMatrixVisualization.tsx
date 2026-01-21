@@ -21,6 +21,7 @@ interface DeepMatrixVisualizationProps {
   autoRotationSpeed?: number;   // Base speed for autonomous rotation
   autoRotationJitter?: number;  // Random variation applied over time
   scaleMultiplier?: number;     // External scale factor applied to the group
+  onInteractionStart?: () => void; // Callback when user starts interacting
 }
 
 
@@ -60,7 +61,8 @@ const DeepMatrixVisualization: React.FC<DeepMatrixVisualizationProps> = ({
   maxRotationVelocity = 0.42,
   autoRotationSpeed = 0.007,
   autoRotationJitter = 0.001,
-  scaleMultiplier = 1
+  scaleMultiplier = 1,
+  onInteractionStart
 }) => {
   const mountRef = useRef<HTMLDivElement | null>(null);
   const parentGroupRef = useRef<THREE.Group | null>(null);
@@ -72,6 +74,12 @@ const DeepMatrixVisualization: React.FC<DeepMatrixVisualizationProps> = ({
   const scaleRef = useRef(1);
   const boundingSphereRef = useRef(new THREE.Sphere(new THREE.Vector3(), 1));
   const [isSupported, setIsSupported] = useState(true);
+  const onInteractionStartRef = useRef(onInteractionStart);
+  onInteractionStartRef.current = onInteractionStart;
+  const connectionColorRef = useRef(connectionColor);
+  connectionColorRef.current = connectionColor;
+  const revealProgressRef = useRef(0); // 0 = dark, 1 = fully revealed
+  const hasRevealedRef = useRef(false); // Track if reveal has been triggered
 
   useEffect(() => {
     const container = mountRef.current;
@@ -81,6 +89,10 @@ const DeepMatrixVisualization: React.FC<DeepMatrixVisualizationProps> = ({
       return;
     }
     setIsSupported(true);
+
+    // Reset reveal state on mount/remount
+    revealProgressRef.current = 0;
+    hasRevealedRef.current = false;
     const translationVelocity = translationVelocityRef.current;
     const pointerPosition = pointerPositionRef.current;
     pointerTimeRef.current = typeof performance !== 'undefined' ? performance.now() : Date.now();
@@ -162,10 +174,10 @@ const DeepMatrixVisualization: React.FC<DeepMatrixVisualizationProps> = ({
     const allTokenPositions: THREE.Vector3[][][] = []; // [stack][layer][token]
     const allPointsObjects: THREE.Points[] = []; // Keep track of Points objects for size animation
     const pointsMaterial = new THREE.PointsMaterial({
-      color: 0xffffff,
+      color: 0x000000, // Start completely dark
       size: 0.2,
       transparent: true,
-      opacity: 0.5,
+      opacity: 0.02, // Start nearly invisible
       blending: THREE.AdditiveBlending,
       depthWrite: false,
       sizeAttenuation: true,
@@ -177,7 +189,7 @@ const DeepMatrixVisualization: React.FC<DeepMatrixVisualizationProps> = ({
     const glowMaterial = new THREE.ShaderMaterial({
       uniforms: {
         glowColor: { value: new THREE.Color(0x798394) },
-        opacity: { value: 0.35 }
+        opacity: { value: 0 } // Start with no glow
       },
       vertexShader: `
         varying float intensity;
@@ -243,7 +255,7 @@ const DeepMatrixVisualization: React.FC<DeepMatrixVisualizationProps> = ({
       if (boundingSphereRef.current.radius > 0) {
         glowBaseScale = boundingSphereRef.current.radius * 1.25;
         glowMesh.scale.setScalar(glowBaseScale);
-        glowMesh.visible = true;
+        // Keep glow hidden until revealed - animation loop will show it when appropriate
       }
     }
 
@@ -277,7 +289,7 @@ const DeepMatrixVisualization: React.FC<DeepMatrixVisualizationProps> = ({
             const index = allConnectionPoints.length / 2;
 
             allConnectionPoints.push(start.clone(), end.clone());
-            allConnectionColors.push(0.6, 0.6, 0.6, 0.6, 0.6, 0.6); // Gray for both vertices
+            allConnectionColors.push(0.1, 0.1, 0.18, 0.1, 0.1, 0.18); // Dark for both vertices
 
             connections.push({ index, center, activation: 0, target: 0 });
           }
@@ -296,7 +308,7 @@ const DeepMatrixVisualization: React.FC<DeepMatrixVisualizationProps> = ({
               const index = allConnectionPoints.length / 2;
 
               allConnectionPoints.push(start.clone(), end.clone());
-              allConnectionColors.push(0.6, 0.6, 0.6, 0.6, 0.6, 0.6); // Gray for both vertices
+              allConnectionColors.push(0.1, 0.1, 0.18, 0.1, 0.1, 0.18); // Dark for both vertices
 
               connections.push({ index, center, activation: 0, target: 0 });
             }
@@ -313,7 +325,7 @@ const DeepMatrixVisualization: React.FC<DeepMatrixVisualizationProps> = ({
     const lineMaterial = new THREE.LineBasicMaterial({
       vertexColors: true,
       transparent: true,
-      opacity: 0.4,
+      opacity: 0.12, // Start with low opacity
       blending: THREE.AdditiveBlending,
       depthWrite: false,
     });
@@ -326,6 +338,7 @@ const DeepMatrixVisualization: React.FC<DeepMatrixVisualizationProps> = ({
      */
     const colorAttribute = lineGeometry.getAttribute('color') as THREE.BufferAttribute;
     const targetColorObj = new THREE.Color(connectionColor);
+    const displayColorObj = new THREE.Color(connectionColor); // Smoothly interpolates to target
     const grayColorObj = new THREE.Color(0.35, 0.45, 0.6);
     const glowCoreColor = new THREE.Color(0xffffff);
     const glowRingColor = new THREE.Color(0xa855f7);
@@ -338,6 +351,7 @@ const DeepMatrixVisualization: React.FC<DeepMatrixVisualizationProps> = ({
     const currentGlowColor = new THREE.Color();
     const baseLineColor = new THREE.Color(0x1b2240);
     const restGlowColor = new THREE.Color(baseLineColor).lerp(new THREE.Color(0xffffff), 0.06);
+    const darkColor = new THREE.Color(0x1a1a2e); // Dark but visible on black background
 
     // Throttle activation checks (only check a subset each frame)
     let activationCheckIndex = 0;
@@ -370,6 +384,13 @@ const DeepMatrixVisualization: React.FC<DeepMatrixVisualizationProps> = ({
       }
     };
 
+    const triggerReveal = () => {
+      if (!hasRevealedRef.current) {
+        hasRevealedRef.current = true;
+        onInteractionStartRef.current?.();
+      }
+    };
+
     const handlePointerDown = (event: PointerEvent) => {
       container.setPointerCapture(event.pointerId);
       isDragging = true;
@@ -377,6 +398,7 @@ const DeepMatrixVisualization: React.FC<DeepMatrixVisualizationProps> = ({
       pointerPosition.set(event.clientX, event.clientY);
       pointerActiveRef.current = true;
       container.style.cursor = 'grabbing';
+      triggerReveal();
     };
 
     const applyHoverImpulse = (event: PointerEvent) => {
@@ -446,6 +468,9 @@ const DeepMatrixVisualization: React.FC<DeepMatrixVisualizationProps> = ({
 
       translationVelocity.x += deltaX * pixelToWorldX * impulseScale;
       translationVelocity.y -= deltaY * pixelToWorldY * impulseScale;
+
+      // Trigger reveal when cube is moved
+      triggerReveal();
     };
 
     const handlePointerMove = (event: PointerEvent) => {
@@ -485,6 +510,14 @@ const DeepMatrixVisualization: React.FC<DeepMatrixVisualizationProps> = ({
     window.addEventListener('pointerup', handlePointerUp, { passive: true });
     window.addEventListener('pointercancel', handlePointerUp, { passive: true });
 
+    // Scroll detection to trigger reveal
+    const handleScroll = () => {
+      if (window.scrollY > 10) {
+        triggerReveal();
+      }
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+
     let lastTime = Date.now();
 
     const autoRotation = new THREE.Vector3(
@@ -494,8 +527,10 @@ const DeepMatrixVisualization: React.FC<DeepMatrixVisualizationProps> = ({
     );
     const targetAutoRotation = autoRotation.clone();
     const autoRotationLerp = 0.02;
+    let animationCancelled = false;
 
-    async function animate() {
+    function animate() {
+      if (animationCancelled) return;
       requestAnimationFrame(animate);
 
       const currentTime = Date.now();
@@ -504,28 +539,47 @@ const DeepMatrixVisualization: React.FC<DeepMatrixVisualizationProps> = ({
       const deltaSeconds = deltaTime / 1000;
       const frameFactor = Math.min(deltaSeconds * 60, 3);
 
+      // Smoothly transition connection color
+      targetColorObj.set(connectionColorRef.current || '#0000ff');
+      displayColorObj.lerp(targetColorObj, 0.03 * frameFactor);
+
+      // Update reveal progress - smoothly animate from 0 to 1 when triggered
+      if (hasRevealedRef.current && revealProgressRef.current < 1) {
+        revealProgressRef.current = Math.min(1, revealProgressRef.current + 0.02 * frameFactor);
+      }
+      const revealProgress = revealProgressRef.current;
+
       const spinMagnitude = rotationVelocity.length();
       const autoSpinMagnitude = autoRotation.length();
       const spinIntensity = THREE.MathUtils.clamp((spinMagnitude + autoSpinMagnitude * 3) / maxSpinMagnitude, 0, 1);
       const easedIntensity = THREE.MathUtils.smoothstep(spinIntensity, 0, 1);
-      const glowIntensity = easedIntensity;
+      const glowIntensity = easedIntensity * revealProgress; // Scale by reveal progress
       const paletteChoice = iridescentPalette[Math.floor(Math.random() * iridescentPalette.length)];
       const spectralColor = glowRingColor.clone()
         .lerp(glowHaloColor, glowIntensity)
         .lerp(paletteChoice, glowIntensity * 0.55)
         .lerp(glowCoreColor, Math.pow(glowIntensity, 0.6));
       currentGlowColor.copy(restGlowColor).lerp(spectralColor, glowIntensity);
+      // Interpolate from dark to target color based on reveal progress
+      currentGlowColor.lerp(darkColor, 1 - revealProgress);
       pointsMaterial.color.copy(currentGlowColor);
-      pointsMaterial.opacity = 0.05 + glowIntensity * 0.45;
+      // Base opacity of 0.15 when unrevealed, full opacity when revealed
+      const basePointOpacity = 0.15;
+      const fullPointOpacity = 0.05 + glowIntensity * 0.45;
+      pointsMaterial.opacity = basePointOpacity + (fullPointOpacity - basePointOpacity) * revealProgress;
       pointsMaterial.needsUpdate = true;
-      lineMaterial.opacity = 0.08 + glowIntensity * 0.35;
+      const baseLineOpacity = 0.12;
+      const fullLineOpacity = 0.08 + glowIntensity * 0.35;
+      lineMaterial.opacity = baseLineOpacity + (fullLineOpacity - baseLineOpacity) * revealProgress;
       lineMaterial.needsUpdate = true;
       grayColorObj.copy(baseLineColor).lerp(currentGlowColor, 0.3 + glowIntensity * 0.5);
+      // Also darken grayColorObj when not revealed
+      grayColorObj.lerp(darkColor, 1 - revealProgress);
       const glowScale = glowBaseScale * Math.max(scaleRef.current, 0.1) * (1.05 + glowIntensity * 0.55);
       if (glowBaseScale > 0) {
-        glowMesh.visible = glowIntensity > 0.02;
+        glowMesh.visible = glowIntensity > 0.02 && revealProgress > 0.1;
         glowMesh.scale.setScalar(glowScale);
-        glowMaterial.opacity = glowIntensity * 0.35;
+        glowMaterial.opacity = glowIntensity * 0.35 * revealProgress;
         glowMaterial.needsUpdate = true;
       }
       targetColorObj.copy(currentGlowColor);
@@ -626,8 +680,8 @@ const DeepMatrixVisualization: React.FC<DeepMatrixVisualizationProps> = ({
             conn.target = 0;
           }
 
-          // Interpolate color
-          const color = grayColorObj.clone().lerp(targetColorObj, conn.activation);
+          // Interpolate color using smoothly transitioning displayColorObj
+          const color = grayColorObj.clone().lerp(displayColorObj, conn.activation);
 
           // Update both vertices of this line segment
           colorAttribute.setXYZ(conn.index * 2, color.r, color.g, color.b);
@@ -653,7 +707,9 @@ const DeepMatrixVisualization: React.FC<DeepMatrixVisualizationProps> = ({
     window.addEventListener('resize', onResize);
 
     return () => {
+      animationCancelled = true; // Stop the animation loop
       window.removeEventListener('resize', onResize);
+      window.removeEventListener('scroll', handleScroll);
       container.removeEventListener('pointerdown', handlePointerDown);
       container.removeEventListener('pointerleave', handlePointerLeave);
       window.removeEventListener('pointermove', handlePointerMove);
@@ -692,7 +748,6 @@ const DeepMatrixVisualization: React.FC<DeepMatrixVisualizationProps> = ({
     stackSpacing,
     layerSpacing,
     maxConnectionsPerToken,
-    connectionColor,
     cameraZoom,
     activationChance,
     fadeSpeed,

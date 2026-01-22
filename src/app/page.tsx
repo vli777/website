@@ -3,8 +3,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import dynamic from "next/dynamic";
 import { motion } from "framer-motion";
-import imageData from "./imageData.json";
-import { ImageCard } from "./components/ImageCard";
+// import imageData from "./imageData.json";
 import ImageModal from "./components/ImageModal";
 import {
   Brain,
@@ -31,7 +30,7 @@ type VisualizationImage = {
   alignment?: string;
 };
 
-const typedImages = imageData as VisualizationImage[];
+// const typedImages = imageData as VisualizationImage[];
 
 const features = [
   {
@@ -101,11 +100,11 @@ const Home: React.FC = () => {
   >("idle");
   const [videoOpacity, setVideoOpacity] = useState(0);
   const [cubeRevealed, setCubeRevealed] = useState(false);
-  const demoImages = typedImages;
+  // const demoImages = typedImages;
 
-  const handleCardClick = useCallback((image: VisualizationImage) => {
-    setSelectedImage(image);
-  }, []);
+  // const handleCardClick = useCallback((image: VisualizationImage) => {
+  //   setSelectedImage(image);
+  // }, []);
 
   const handleModalClose = useCallback(() => {
     setSelectedImage(null);
@@ -263,7 +262,11 @@ const Home: React.FC = () => {
               <p className="max-w-2xl text-xl font-bold leading-relaxed text-blue-800 sm:text-2xl">
                 Institutional-grade quantitative investing
                 <br />
-                <span className="text-white font-light">For everyone.</span>
+                <span
+                  className={`${cubeRevealed ? "text-white" : "text-transparent"} font-light`}
+                >
+                  For everyone.
+                </span>
               </p>
               <p className="text-sm text-gray-500">
                 Powered by{" "}
@@ -442,19 +445,6 @@ const Home: React.FC = () => {
                 advanced modeling techniques once reserved for the world&apos;s
                 most sophisticated investors.
               </motion.p>
-            </div>
-          </div>
-
-          <div className="mx-auto max-w-5xl px-6 mt-16">
-            <div className="grid gap-4 sm:grid-cols-2">
-              {demoImages.map((img, index) => (
-                <ImageCard
-                  key={index}
-                  {...img}
-                  index={index}
-                  onClick={() => handleCardClick(img)}
-                />
-              ))}
             </div>
           </div>
         </section>

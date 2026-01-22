@@ -1,41 +1,40 @@
-import React, { useEffect, useRef, useState } from 'react';
-import * as THREE from 'three';
+import React, { useEffect, useRef, useState } from "react";
+import * as THREE from "three";
 
 interface DeepMatrixVisualizationProps {
-  stackCount: number;           // Number of vertical stacks (Y-axis)
-  layerCount: number;           // Number of layers per stack (Z-axis)
-  tokenCount: number;           // Tokens per layer
-  horizontalSpacing?: number;   // Space between tokens horizontally
-  verticalSpacing?: number;     // Space between tokens vertically (within a layer)
-  stackSpacing?: number;        // Space between stacks along Y-axis
-  layerSpacing?: number;        // Space between layers along Z-axis
+  stackCount: number; // Number of vertical stacks (Y-axis)
+  layerCount: number; // Number of layers per stack (Z-axis)
+  tokenCount: number; // Tokens per layer
+  horizontalSpacing?: number; // Space between tokens horizontally
+  verticalSpacing?: number; // Space between tokens vertically (within a layer)
+  stackSpacing?: number; // Space between stacks along Y-axis
+  layerSpacing?: number; // Space between layers along Z-axis
   maxConnectionsPerToken?: number; // Limit on connections for each token
-  connectionColor?: string;     // Target color for active connections (default: blue)
-  cameraZoom?: number;          // Camera zoom factor
-  activationChance?: number;    // Chance to activate a connection each frame
-  fadeSpeed?: number;           // Speed at which connections fade in/out
+  connectionColor?: string; // Target color for active connections (default: blue)
+  cameraZoom?: number; // Camera zoom factor
+  activationChance?: number; // Chance to activate a connection each frame
+  fadeSpeed?: number; // Speed at which connections fade in/out
   interactionSensitivity?: number; // Multiplier for pointer movement -> rotation velocity
-  dragDamping?: number;         // Per-frame damping factor while dragging
-  inertiaDecay?: number;        // Per-frame damping once released
+  dragDamping?: number; // Per-frame damping factor while dragging
+  inertiaDecay?: number; // Per-frame damping once released
   maxRotationVelocity?: number; // Clamp for rotation velocity magnitude
-  autoRotationSpeed?: number;   // Base speed for autonomous rotation
-  autoRotationJitter?: number;  // Random variation applied over time
-  scaleMultiplier?: number;     // External scale factor applied to the group
+  autoRotationSpeed?: number; // Base speed for autonomous rotation
+  autoRotationJitter?: number; // Random variation applied over time
+  scaleMultiplier?: number; // External scale factor applied to the group
   onInteractionStart?: () => void; // Callback when user starts interacting
 }
 
-
 const BASE_SCALE = 0.5;
 const canUseWebGL = () => {
-  if (typeof window === 'undefined') {
+  if (typeof window === "undefined") {
     return false;
   }
   try {
-    const canvas = document.createElement('canvas');
+    const canvas = document.createElement("canvas");
     const gl =
-      canvas.getContext('webgl2') ||
-      canvas.getContext('webgl') ||
-      canvas.getContext('experimental-webgl');
+      canvas.getContext("webgl2") ||
+      canvas.getContext("webgl") ||
+      canvas.getContext("experimental-webgl");
     return Boolean(gl);
   } catch {
     return false;
@@ -51,7 +50,7 @@ const DeepMatrixVisualization: React.FC<DeepMatrixVisualizationProps> = ({
   stackSpacing = 20,
   layerSpacing = 10,
   maxConnectionsPerToken = 4,
-  connectionColor = '#0000ff', // Default blue
+  connectionColor = "#0000ff", // Default blue
   cameraZoom = 1.5, // Camera zoom factor
   activationChance = 0.002,
   fadeSpeed = 0.05,
@@ -62,7 +61,7 @@ const DeepMatrixVisualization: React.FC<DeepMatrixVisualizationProps> = ({
   autoRotationSpeed = 0.007,
   autoRotationJitter = 0.001,
   scaleMultiplier = 1,
-  onInteractionStart
+  onInteractionStart,
 }) => {
   const mountRef = useRef<HTMLDivElement | null>(null);
   const parentGroupRef = useRef<THREE.Group | null>(null);
@@ -95,7 +94,8 @@ const DeepMatrixVisualization: React.FC<DeepMatrixVisualizationProps> = ({
     hasRevealedRef.current = false;
     const translationVelocity = translationVelocityRef.current;
     const pointerPosition = pointerPositionRef.current;
-    pointerTimeRef.current = typeof performance !== 'undefined' ? performance.now() : Date.now();
+    pointerTimeRef.current =
+      typeof performance !== "undefined" ? performance.now() : Date.now();
     const raycaster = new THREE.Raycaster();
     const sphereWorld = new THREE.Sphere();
     const sphereCenter = new THREE.Vector3();
@@ -107,26 +107,30 @@ const DeepMatrixVisualization: React.FC<DeepMatrixVisualizationProps> = ({
     const scene = new THREE.Scene();
 
     // Compute offsets so that tokens are centered in the group.
-    const offsetY = (stackCount - 1) * stackSpacing / 2;
-    const offsetZ = (layerCount - 1) * layerSpacing / 2;
+    const offsetY = ((stackCount - 1) * stackSpacing) / 2;
+    const offsetZ = ((layerCount - 1) * layerSpacing) / 2;
 
     // Use a perspective camera looking at the origin.
     const camera = new THREE.PerspectiveCamera(
       40,
       container.clientWidth / container.clientHeight,
       0.1,
-      2000
+      2000,
     );
     const cameraDistance = Math.max(
       stackCount * stackSpacing,
-      layerCount * layerSpacing * cameraZoom
+      layerCount * layerSpacing * cameraZoom,
     );
     camera.position.set(0, 0, cameraDistance);
     camera.lookAt(new THREE.Vector3(0, 0, 0));
 
     let renderer: THREE.WebGLRenderer;
     try {
-      renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });
+      renderer = new THREE.WebGLRenderer({
+        antialias: true,
+        alpha: true,
+        preserveDrawingBuffer: true,
+      });
     } catch (error) {
       console.warn("WebGL renderer initialization failed:", error);
       setIsSupported(false);
@@ -135,25 +139,39 @@ const DeepMatrixVisualization: React.FC<DeepMatrixVisualizationProps> = ({
 
     const resizeRenderer = () => {
       const rect = container.getBoundingClientRect();
-      const width = Math.max(window.innerWidth, rect.width, 1);
-      const height = Math.max(window.innerHeight, rect.height, 1);
+      const width = Math.max(rect.width, 1);
+      const height = Math.max(rect.height, 1);
+
       renderer.setSize(width, height, false);
+
       const aspect = width / height;
       camera.aspect = aspect;
       camera.updateProjectionMatrix();
-      const halfHeight = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) * camera.position.z;
+
+      const halfHeight =
+        Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) * camera.position.z;
       const halfWidth = halfHeight * aspect;
       viewportBoundsRef.current.set(halfWidth, halfHeight);
+
+      console.log(
+        "rect",
+        rect.width,
+        rect.height,
+        "renderer",
+        renderer.domElement.width,
+        renderer.domElement.height,
+      );
     };
 
-    resizeRenderer();
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    resizeRenderer();
+
     renderer.setClearColor(0x000000, 0);
-    renderer.domElement.style.background = 'transparent';
-    renderer.domElement.style.position = 'absolute';
-    renderer.domElement.style.left = '50%';
-    renderer.domElement.style.top = '50%';
-    renderer.domElement.style.transform = 'translate(-50%, -50%)';
+    renderer.domElement.style.background = "transparent";
+    renderer.domElement.style.position = "absolute";
+    renderer.domElement.style.left = "50%";
+    renderer.domElement.style.top = "50%";
+    renderer.domElement.style.transform = "translate(-50%, -50%)";
     container.appendChild(renderer.domElement);
 
     // Lighting
@@ -189,37 +207,37 @@ const DeepMatrixVisualization: React.FC<DeepMatrixVisualizationProps> = ({
     const boundingBox = new THREE.Box3();
 
     // Glow mesh and material
-    const glowGeometry = new THREE.SphereGeometry(1, 32, 32);
-    const glowMaterial = new THREE.ShaderMaterial({
-      uniforms: {
-        glowColor: { value: new THREE.Color(0x798394) },
-        opacity: { value: 0 } // Start with no glow
-      },
-      vertexShader: `
-        varying float intensity;
-        void main() {
-          vec3 vNormal = normalize( normalMatrix * normal );
-          intensity = pow( 0.8 - dot( vNormal, vec3( 0.0, 0.0, 1.0 ) ), 2.0 );
-          gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
-        }
-      `,
-      fragmentShader: `
-        uniform vec3 glowColor;
-        uniform float opacity;
-        varying float intensity;
-        void main() {
-          vec3 glow = glowColor * intensity * opacity;
-          gl_FragColor = vec4( glow, 1.0 );
-        }
-      `,
-      side: THREE.BackSide,
-      blending: THREE.AdditiveBlending,
-      transparent: true
-    });
+    // const glowGeometry = new THREE.SphereGeometry(1, 32, 32);
+    // const glowMaterial = new THREE.ShaderMaterial({
+    //   uniforms: {
+    //     glowColor: { value: new THREE.Color(0x798394) },
+    //     opacity: { value: 0 } // Start with no glow
+    //   },
+    //   vertexShader: `
+    //     varying float intensity;
+    //     void main() {
+    //       vec3 vNormal = normalize( normalMatrix * normal );
+    //       intensity = pow( 0.8 - dot( vNormal, vec3( 0.0, 0.0, 1.0 ) ), 2.0 );
+    //       gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+    //     }
+    //   `,
+    //   fragmentShader: `
+    //     uniform vec3 glowColor;
+    //     uniform float opacity;
+    //     varying float intensity;
+    //     void main() {
+    //       vec3 glow = glowColor * intensity * opacity;
+    //       gl_FragColor = vec4( glow, 1.0 );
+    //     }
+    //   `,
+    //   side: THREE.BackSide,
+    //   blending: THREE.AdditiveBlending,
+    //   transparent: true
+    // });
 
-    const glowMesh = new THREE.Mesh(glowGeometry, glowMaterial);
-    glowMesh.visible = false;
-    parentGroup.add(glowMesh);
+    // const glowMesh = new THREE.Mesh(glowGeometry, glowMaterial);
+    // glowMesh.visible = false;
+    // parentGroup.add(glowMesh);
 
     for (let stackIndex = 0; stackIndex < stackCount; stackIndex++) {
       const stackY = stackIndex * stackSpacing - offsetY;
@@ -250,17 +268,17 @@ const DeepMatrixVisualization: React.FC<DeepMatrixVisualizationProps> = ({
         const points = new THREE.Points(geometry, pointsMaterial);
         parentGroup.add(points);
         allPointsObjects.push(points);
-      })
+      }),
     );
 
-    let glowBaseScale = 0;
+    // let glowBaseScale = 0;
     if (!boundingBox.isEmpty()) {
       boundingBox.getBoundingSphere(boundingSphereRef.current);
-      if (boundingSphereRef.current.radius > 0) {
-        glowBaseScale = boundingSphereRef.current.radius * 1.25;
-        glowMesh.scale.setScalar(glowBaseScale);
-        // Keep glow hidden until revealed - animation loop will show it when appropriate
-      }
+      // if (boundingSphereRef.current.radius > 0) {
+      //   glowBaseScale = boundingSphereRef.current.radius * 1.25;
+      //   glowMesh.scale.setScalar(glowBaseScale);
+      //   // Keep glow hidden until revealed - animation loop will show it when appropriate
+      // }
     }
 
     /**
@@ -268,7 +286,7 @@ const DeepMatrixVisualization: React.FC<DeepMatrixVisualizationProps> = ({
      * Use batched LineSegments instead of individual Line objects
      */
     type Connection = {
-      index: number;        // Position in the batched geometry
+      index: number; // Position in the batched geometry
       center: THREE.Vector3;
       activation: number;
       target: number;
@@ -284,12 +302,16 @@ const DeepMatrixVisualization: React.FC<DeepMatrixVisualizationProps> = ({
 
         // Intra-layer connections
         currentLayer.forEach((start, t) => {
-          const allOthers = [...Array(currentLayer.length).keys()].filter(o => o !== t);
+          const allOthers = [...Array(currentLayer.length).keys()].filter(
+            (o) => o !== t,
+          );
           for (let i = 0; i < maxConnectionsPerToken; i++) {
             const randomIndex = Math.floor(Math.random() * allOthers.length);
             const end = currentLayer[allOthers[randomIndex]];
 
-            const center = new THREE.Vector3().addVectors(start, end).multiplyScalar(0.5);
+            const center = new THREE.Vector3()
+              .addVectors(start, end)
+              .multiplyScalar(0.5);
             const index = allConnectionPoints.length / 2;
 
             allConnectionPoints.push(start.clone(), end.clone());
@@ -308,7 +330,9 @@ const DeepMatrixVisualization: React.FC<DeepMatrixVisualizationProps> = ({
               const randomIndex = Math.floor(Math.random() * allOthers.length);
               const end = nextLayer[allOthers[randomIndex]];
 
-              const center = new THREE.Vector3().addVectors(start, end).multiplyScalar(0.5);
+              const center = new THREE.Vector3()
+                .addVectors(start, end)
+                .multiplyScalar(0.5);
               const index = allConnectionPoints.length / 2;
 
               allConnectionPoints.push(start.clone(), end.clone());
@@ -322,9 +346,14 @@ const DeepMatrixVisualization: React.FC<DeepMatrixVisualizationProps> = ({
     }
 
     // Create a single batched LineSegments object
-    const lineGeometry = new THREE.BufferGeometry().setFromPoints(allConnectionPoints);
+    const lineGeometry = new THREE.BufferGeometry().setFromPoints(
+      allConnectionPoints,
+    );
     const colorArray = new Float32Array(allConnectionColors);
-    lineGeometry.setAttribute('color', new THREE.BufferAttribute(colorArray, 3));
+    lineGeometry.setAttribute(
+      "color",
+      new THREE.BufferAttribute(colorArray, 3),
+    );
 
     const lineMaterial = new THREE.LineBasicMaterial({
       vertexColors: true,
@@ -340,7 +369,9 @@ const DeepMatrixVisualization: React.FC<DeepMatrixVisualizationProps> = ({
     /**
      * Animation Loop (Rotating in Place) - OPTIMIZED + DYNAMIC SIZE + MULTI-AXIS ROTATION
      */
-    const colorAttribute = lineGeometry.getAttribute('color') as THREE.BufferAttribute;
+    const colorAttribute = lineGeometry.getAttribute(
+      "color",
+    ) as THREE.BufferAttribute;
     const targetColorObj = new THREE.Color(connectionColor);
     const displayColorObj = new THREE.Color(connectionColor); // Smoothly interpolates to target
     const grayColorObj = new THREE.Color(0.35, 0.45, 0.6);
@@ -354,12 +385,18 @@ const DeepMatrixVisualization: React.FC<DeepMatrixVisualizationProps> = ({
     ];
     const currentGlowColor = new THREE.Color();
     const baseLineColor = new THREE.Color(0x1b2240);
-    const restGlowColor = new THREE.Color(baseLineColor).lerp(new THREE.Color(0xffffff), 0.06);
+    const restGlowColor = new THREE.Color(baseLineColor).lerp(
+      new THREE.Color(0xffffff),
+      0.06,
+    );
     const darkColor = new THREE.Color(0x1a1a2e); // Dark but visible on black background
 
     // Throttle activation checks (only check a subset each frame)
     let activationCheckIndex = 0;
-    const activationsPerFrame = Math.max(1, Math.floor(connections.length / 10));
+    const activationsPerFrame = Math.max(
+      1,
+      Math.floor(connections.length / 10),
+    );
 
     // Random size pulsing for each point group (0.2 max, can shrink to 0.033 - 6x smaller)
     const pointSizeData = allPointsObjects.map(() => ({
@@ -376,8 +413,8 @@ const DeepMatrixVisualization: React.FC<DeepMatrixVisualizationProps> = ({
     let isDragging = false;
     const rotationClamp = Math.PI / 2;
 
-    container.style.cursor = 'grab';
-    container.style.touchAction = 'none';
+    container.style.cursor = "grab";
+    container.style.touchAction = "none";
 
     const updateRotationVelocity = (deltaX: number, deltaY: number) => {
       rotationVelocity.x += deltaY;
@@ -401,7 +438,7 @@ const DeepMatrixVisualization: React.FC<DeepMatrixVisualizationProps> = ({
       lastPointer.set(event.clientX, event.clientY);
       pointerPosition.set(event.clientX, event.clientY);
       pointerActiveRef.current = true;
-      container.style.cursor = 'grabbing';
+      container.style.cursor = "grabbing";
       triggerReveal();
     };
 
@@ -424,14 +461,16 @@ const DeepMatrixVisualization: React.FC<DeepMatrixVisualizationProps> = ({
 
       pointerNDC.set(
         ((event.clientX - rect.left) / rect.width) * 2 - 1,
-        -(((event.clientY - rect.top) / rect.height) * 2 - 1)
+        -(((event.clientY - rect.top) / rect.height) * 2 - 1),
       );
       raycaster.setFromCamera(pointerNDC, camera);
       sphereCenter.copy(parentGroup.position);
       sphereWorld.center.copy(sphereCenter);
       sphereWorld.radius = localSphere.radius * scaleRef.current;
 
-      if (raycaster.ray.intersectSphere(sphereWorld, intersectionPoint) === null) {
+      if (
+        raycaster.ray.intersectSphere(sphereWorld, intersectionPoint) === null
+      ) {
         pointerActiveRef.current = false;
         return;
       }
@@ -439,7 +478,8 @@ const DeepMatrixVisualization: React.FC<DeepMatrixVisualizationProps> = ({
       if (!pointerActiveRef.current) {
         pointerPosition.set(event.clientX, event.clientY);
         pointerActiveRef.current = true;
-        pointerTimeRef.current = typeof performance !== 'undefined' ? performance.now() : Date.now();
+        pointerTimeRef.current =
+          typeof performance !== "undefined" ? performance.now() : Date.now();
         return;
       }
 
@@ -447,7 +487,8 @@ const DeepMatrixVisualization: React.FC<DeepMatrixVisualizationProps> = ({
       const deltaY = event.clientY - pointerPosition.y;
       pointerPosition.set(event.clientX, event.clientY);
 
-      const now = typeof performance !== 'undefined' ? performance.now() : Date.now();
+      const now =
+        typeof performance !== "undefined" ? performance.now() : Date.now();
       if (deltaX === 0 && deltaY === 0) {
         pointerTimeRef.current = now;
         return;
@@ -462,8 +503,8 @@ const DeepMatrixVisualization: React.FC<DeepMatrixVisualizationProps> = ({
       const baseImpulse = 0.055;
       const speedBoost = Math.min(pixelSpeed * 0.002, 2.7);
       const angleFactor = Math.min(1.8, speedBoost + 0.4);
-      rotationVelocity.y += (deltaX * 0.0012) * angleFactor;
-      rotationVelocity.x += (deltaY * 0.0012) * angleFactor;
+      rotationVelocity.y += deltaX * 0.0012 * angleFactor;
+      rotationVelocity.x += deltaY * 0.0012 * angleFactor;
       if (rotationVelocity.length() > maxSpinMagnitude) {
         rotationVelocity.setLength(maxSpinMagnitude);
       }
@@ -490,29 +531,38 @@ const DeepMatrixVisualization: React.FC<DeepMatrixVisualizationProps> = ({
 
     const handlePointerUp = (event: PointerEvent) => {
       if (isDragging) {
-        if (typeof container.hasPointerCapture === 'function' && container.hasPointerCapture(event.pointerId)) {
+        if (
+          typeof container.hasPointerCapture === "function" &&
+          container.hasPointerCapture(event.pointerId)
+        ) {
           container.releasePointerCapture(event.pointerId);
         }
         isDragging = false;
-        container.style.cursor = 'grab';
+        container.style.cursor = "grab";
       }
       pointerPosition.set(event.clientX, event.clientY);
       pointerActiveRef.current = true;
-      pointerTimeRef.current = typeof performance !== 'undefined' ? performance.now() : Date.now();
+      pointerTimeRef.current =
+        typeof performance !== "undefined" ? performance.now() : Date.now();
       const releaseFactor = 0.06;
       rotationVelocity.multiplyScalar(1 - releaseFactor);
     };
 
     const handlePointerLeave = () => {
       pointerActiveRef.current = false;
-      pointerTimeRef.current = typeof performance !== 'undefined' ? performance.now() : Date.now();
+      pointerTimeRef.current =
+        typeof performance !== "undefined" ? performance.now() : Date.now();
     };
 
-    container.addEventListener('pointerdown', handlePointerDown);
-    container.addEventListener('pointerleave', handlePointerLeave);
-    window.addEventListener('pointermove', handlePointerMove, { passive: true });
-    window.addEventListener('pointerup', handlePointerUp, { passive: true });
-    window.addEventListener('pointercancel', handlePointerUp, { passive: true });
+    container.addEventListener("pointerdown", handlePointerDown);
+    container.addEventListener("pointerleave", handlePointerLeave);
+    window.addEventListener("pointermove", handlePointerMove, {
+      passive: true,
+    });
+    window.addEventListener("pointerup", handlePointerUp, { passive: true });
+    window.addEventListener("pointercancel", handlePointerUp, {
+      passive: true,
+    });
 
     // Scroll detection to trigger reveal
     const handleScroll = () => {
@@ -520,14 +570,14 @@ const DeepMatrixVisualization: React.FC<DeepMatrixVisualizationProps> = ({
         triggerReveal();
       }
     };
-    window.addEventListener('scroll', handleScroll, { passive: true });
+    window.addEventListener("scroll", handleScroll, { passive: true });
 
     let lastTime = Date.now();
 
     const autoRotation = new THREE.Vector3(
       autoRotationSpeed * (Math.random() * 0.6 + 0.7),
       autoRotationSpeed * (Math.random() * 0.8 + 0.6),
-      autoRotationSpeed * (Math.random() * 0.5 + 0.35)
+      autoRotationSpeed * (Math.random() * 0.5 + 0.35),
     );
     const targetAutoRotation = autoRotation.clone();
     const autoRotationLerp = 0.02;
@@ -544,22 +594,31 @@ const DeepMatrixVisualization: React.FC<DeepMatrixVisualizationProps> = ({
       const frameFactor = Math.min(deltaSeconds * 60, 3);
 
       // Smoothly transition connection color
-      targetColorObj.set(connectionColorRef.current || '#0000ff');
+      targetColorObj.set(connectionColorRef.current || "#0000ff");
       displayColorObj.lerp(targetColorObj, 0.03 * frameFactor);
 
       // Update reveal progress - smoothly animate from 0 to 1 when triggered
       if (hasRevealedRef.current && revealProgressRef.current < 1) {
-        revealProgressRef.current = Math.min(1, revealProgressRef.current + 0.02 * frameFactor);
+        revealProgressRef.current = Math.min(
+          1,
+          revealProgressRef.current + 0.02 * frameFactor,
+        );
       }
       const revealProgress = revealProgressRef.current;
 
       const spinMagnitude = rotationVelocity.length();
       const autoSpinMagnitude = autoRotation.length();
-      const spinIntensity = THREE.MathUtils.clamp((spinMagnitude + autoSpinMagnitude * 3) / maxSpinMagnitude, 0, 1);
+      const spinIntensity = THREE.MathUtils.clamp(
+        (spinMagnitude + autoSpinMagnitude * 3) / maxSpinMagnitude,
+        0,
+        1,
+      );
       const easedIntensity = THREE.MathUtils.smoothstep(spinIntensity, 0, 1);
       const glowIntensity = easedIntensity * revealProgress; // Scale by reveal progress
-      const paletteChoice = iridescentPalette[Math.floor(Math.random() * iridescentPalette.length)];
-      const spectralColor = glowRingColor.clone()
+      const paletteChoice =
+        iridescentPalette[Math.floor(Math.random() * iridescentPalette.length)];
+      const spectralColor = glowRingColor
+        .clone()
         .lerp(glowHaloColor, glowIntensity)
         .lerp(paletteChoice, glowIntensity * 0.55)
         .lerp(glowCoreColor, Math.pow(glowIntensity, 0.6));
@@ -570,30 +629,40 @@ const DeepMatrixVisualization: React.FC<DeepMatrixVisualizationProps> = ({
       // Base opacity of 0.15 when unrevealed, full opacity when revealed
       const basePointOpacity = 0.15;
       const fullPointOpacity = 0.05 + glowIntensity * 0.45;
-      pointsMaterial.opacity = basePointOpacity + (fullPointOpacity - basePointOpacity) * revealProgress;
+      pointsMaterial.opacity =
+        basePointOpacity +
+        (fullPointOpacity - basePointOpacity) * revealProgress;
       pointsMaterial.needsUpdate = true;
       const baseLineOpacity = 0.12;
       const fullLineOpacity = 0.08 + glowIntensity * 0.35;
-      lineMaterial.opacity = baseLineOpacity + (fullLineOpacity - baseLineOpacity) * revealProgress;
+      lineMaterial.opacity =
+        baseLineOpacity + (fullLineOpacity - baseLineOpacity) * revealProgress;
       lineMaterial.needsUpdate = true;
-      grayColorObj.copy(baseLineColor).lerp(currentGlowColor, 0.3 + glowIntensity * 0.5);
+      grayColorObj
+        .copy(baseLineColor)
+        .lerp(currentGlowColor, 0.3 + glowIntensity * 0.5);
       // Also darken grayColorObj when not revealed
       grayColorObj.lerp(darkColor, 1 - revealProgress);
-      const glowScale = glowBaseScale * Math.max(scaleRef.current, 0.1) * (1.05 + glowIntensity * 0.55);
-      if (glowBaseScale > 0) {
-        glowMesh.visible = glowIntensity > 0.02 && revealProgress > 0.1;
-        glowMesh.scale.setScalar(glowScale);
-        glowMaterial.opacity = glowIntensity * 0.35 * revealProgress;
-        glowMaterial.needsUpdate = true;
-      }
+      // const glowScale = glowBaseScale * Math.max(scaleRef.current, 0.1) * (1.05 + glowIntensity * 0.55);
+      // if (glowBaseScale > 0) {
+      //   glowMesh.visible = glowIntensity > 0.02 && revealProgress > 0.1;
+      //   glowMesh.scale.setScalar(glowScale);
+      //   glowMaterial.opacity = glowIntensity * 0.35 * revealProgress;
+      //   glowMaterial.needsUpdate = true;
+      // }
       targetColorObj.copy(currentGlowColor);
 
       // Update autonomous rotation target occasionally
       if (Math.random() < 0.01) {
         targetAutoRotation.set(
-          autoRotationSpeed * (1 + (Math.random() - 0.5) * autoRotationJitter * 30),
-          autoRotationSpeed * 1.2 * (1 + (Math.random() - 0.5) * autoRotationJitter * 30),
-          autoRotationSpeed * 0.8 * (1 + (Math.random() - 0.5) * autoRotationJitter * 30)
+          autoRotationSpeed *
+            (1 + (Math.random() - 0.5) * autoRotationJitter * 30),
+          autoRotationSpeed *
+            1.2 *
+            (1 + (Math.random() - 0.5) * autoRotationJitter * 30),
+          autoRotationSpeed *
+            0.8 *
+            (1 + (Math.random() - 0.5) * autoRotationJitter * 30),
         );
       }
       autoRotation.lerp(targetAutoRotation, autoRotationLerp * frameFactor);
@@ -612,24 +681,28 @@ const DeepMatrixVisualization: React.FC<DeepMatrixVisualizationProps> = ({
       const limitY = Math.max(bounds.y - marginY, 0);
 
       // Spring force to pull cube back toward center when outside bounds
-      const springStrength = 0.1;
-      const softLimitX = limitX * 0.6; // Start pulling back before hard limit
-      const softLimitY = limitY * 0.6;
+      const springStrength = 0.02;
+      const softLimitX = limitX * 0.8; // Start pulling back before hard limit
+      const softLimitY = limitY * 0.8;
 
       if (Math.abs(parentGroup.position.x) > softLimitX) {
-        const overshoot = parentGroup.position.x - Math.sign(parentGroup.position.x) * softLimitX;
+        const overshoot =
+          parentGroup.position.x -
+          Math.sign(parentGroup.position.x) * softLimitX;
         translationVelocity.x -= overshoot * springStrength * frameFactor;
       }
       if (Math.abs(parentGroup.position.y) > softLimitY) {
-        const overshoot = parentGroup.position.y - Math.sign(parentGroup.position.y) * softLimitY;
+        const overshoot =
+          parentGroup.position.y -
+          Math.sign(parentGroup.position.y) * softLimitY;
         translationVelocity.y -= overshoot * springStrength * frameFactor;
       }
 
       // Gentle drift back to center when idle (no active dragging or recent interaction)
       if (!isDragging && translationVelocity.lengthSq() < 0.01) {
         const centerPull = 0.002;
-        parentGroup.position.x *= (1 - centerPull * frameFactor);
-        parentGroup.position.y *= (1 - centerPull * frameFactor);
+        parentGroup.position.x *= 1 - centerPull * frameFactor;
+        parentGroup.position.y *= 1 - centerPull * frameFactor;
       }
 
       // Hard boundary clamp with bounce
@@ -651,12 +724,15 @@ const DeepMatrixVisualization: React.FC<DeepMatrixVisualizationProps> = ({
 
       // Apply rotation velocity with damping/inertia plus autonomous rotation
       parentGroup.rotation.x = THREE.MathUtils.clamp(
-        parentGroup.rotation.x + (rotationVelocity.x + autoRotation.x) * frameFactor,
+        parentGroup.rotation.x +
+          (rotationVelocity.x + autoRotation.x) * frameFactor,
         -rotationClamp,
-        rotationClamp
+        rotationClamp,
       );
-      parentGroup.rotation.y += (rotationVelocity.y + autoRotation.y) * frameFactor;
-      parentGroup.rotation.z += (rotationVelocity.z + autoRotation.z) * frameFactor;
+      parentGroup.rotation.y +=
+        (rotationVelocity.y + autoRotation.y) * frameFactor;
+      parentGroup.rotation.z +=
+        (rotationVelocity.z + autoRotation.z) * frameFactor;
 
       if (isDragging) {
         rotationVelocity.multiplyScalar(dragDamping);
@@ -675,8 +751,7 @@ const DeepMatrixVisualization: React.FC<DeepMatrixVisualizationProps> = ({
         const diff = data.targetSize - data.currentSize;
         if (Math.abs(diff) > 0.001) {
           data.currentSize += diff * data.pulseSpeed;
-      const spinSizeMultiplier = 0.7 + glowIntensity * 0.95;
-          (pointsObj.material as THREE.PointsMaterial).size = data.currentSize * spinSizeMultiplier;
+          (pointsObj.material as THREE.PointsMaterial).size = data.currentSize;
         }
 
         // Check if it's time to pick a new target size
@@ -707,7 +782,9 @@ const DeepMatrixVisualization: React.FC<DeepMatrixVisualizationProps> = ({
           }
 
           // Interpolate color using smoothly transitioning displayColorObj
-          const color = grayColorObj.clone().lerp(displayColorObj, conn.activation);
+          const color = grayColorObj
+            .clone()
+            .lerp(displayColorObj, conn.activation);
 
           // Update both vertices of this line segment
           colorAttribute.setXYZ(conn.index * 2, color.r, color.g, color.b);
@@ -730,17 +807,17 @@ const DeepMatrixVisualization: React.FC<DeepMatrixVisualizationProps> = ({
       if (!renderer) return;
       resizeRenderer();
     };
-    window.addEventListener('resize', onResize);
+    window.addEventListener("resize", onResize);
 
     return () => {
       animationCancelled = true; // Stop the animation loop
-      window.removeEventListener('resize', onResize);
-      window.removeEventListener('scroll', handleScroll);
-      container.removeEventListener('pointerdown', handlePointerDown);
-      container.removeEventListener('pointerleave', handlePointerLeave);
-      window.removeEventListener('pointermove', handlePointerMove);
-      window.removeEventListener('pointerup', handlePointerUp);
-      window.removeEventListener('pointercancel', handlePointerUp);
+      window.removeEventListener("resize", onResize);
+      window.removeEventListener("scroll", handleScroll);
+      container.removeEventListener("pointerdown", handlePointerDown);
+      container.removeEventListener("pointerleave", handlePointerLeave);
+      window.removeEventListener("pointermove", handlePointerMove);
+      window.removeEventListener("pointerup", handlePointerUp);
+      window.removeEventListener("pointercancel", handlePointerUp);
 
       rotationVelocity.set(0, 0, 0);
       autoRotation.set(0, 0, 0);
@@ -759,7 +836,12 @@ const DeepMatrixVisualization: React.FC<DeepMatrixVisualizationProps> = ({
         console.warn("Error during renderer disposal:", error);
       }
       scene.clear();
-      if (container && renderer && renderer.domElement && container.contains(renderer.domElement)) {
+      if (
+        container &&
+        renderer &&
+        renderer.domElement &&
+        container.contains(renderer.domElement)
+      ) {
         container.removeChild(renderer.domElement);
       }
       parentGroupRef.current = null;
@@ -783,7 +865,7 @@ const DeepMatrixVisualization: React.FC<DeepMatrixVisualizationProps> = ({
     maxRotationVelocity,
     autoRotationSpeed,
     autoRotationJitter,
-    connectionColor
+    connectionColor,
   ]);
 
   useEffect(() => {
@@ -807,30 +889,30 @@ const DeepMatrixVisualization: React.FC<DeepMatrixVisualizationProps> = ({
     <div
       ref={mountRef}
       style={{
-        position: 'relative',
-        width: '100%',
-        height: '100%',
-        background: 'transparent',
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        overflow: 'hidden'
+        position: "relative",
+        width: "100%",
+        height: "100%",
+        background: "transparent",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        overflow: "hidden",
       }}
     >
       {!isSupported && (
         <div
           style={{
-            position: 'absolute',
+            position: "absolute",
             inset: 0,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            background: 'rgba(8, 11, 23, 0.65)',
-            color: '#c5ddff',
-            fontSize: '0.8rem',
-            letterSpacing: '0.12em',
-            textTransform: 'uppercase',
-            pointerEvents: 'none'
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            background: "rgba(8, 11, 23, 0.65)",
+            color: "#c5ddff",
+            fontSize: "0.8rem",
+            letterSpacing: "0.12em",
+            textTransform: "uppercase",
+            pointerEvents: "none",
           }}
         >
           WebGL unavailable

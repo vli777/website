@@ -35,7 +35,11 @@ const PulsingDownload = ({ onRadiusChange }: PulsingDownloadProps) => {
   useEffect(() => {
     notifyRadius();
 
-    if (!onRadiusChange || !anchorRef.current || typeof ResizeObserver === "undefined") {
+    if (
+      !onRadiusChange ||
+      !anchorRef.current ||
+      typeof ResizeObserver === "undefined"
+    ) {
       return;
     }
 
@@ -116,12 +120,14 @@ const PulsingDownload = ({ onRadiusChange }: PulsingDownloadProps) => {
           0%,
           100% {
             transform: scale(1);
-            box-shadow: 0 0 8px ${GLOW_RING},
+            box-shadow:
+              0 0 8px ${GLOW_RING},
               0 0 16px ${REST_GLOW};
           }
           50% {
             transform: scale(1.3);
-            box-shadow: 0 0 20px ${GLOW_RING},
+            box-shadow:
+              0 0 20px ${GLOW_RING},
               0 0 40px ${GLOW_HALO},
               0 0 60px ${GLOW_HALO};
           }
@@ -144,7 +150,9 @@ const PulsingDownload = ({ onRadiusChange }: PulsingDownloadProps) => {
           border-bottom-color: rgba(76, 68, 200, 0.18);
           border-left-color: rgba(76, 68, 200, 0);
           box-shadow: 0 0 16px rgba(108, 90, 255, 0.35);
-          animation: ringSpin 2s linear infinite, ringPulse 2s ease-out infinite;
+          animation:
+            ringSpin 2s linear infinite,
+            ringPulse 2s ease-out infinite;
         }
 
         .neon-ring-hover {

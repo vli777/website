@@ -14,7 +14,14 @@ interface ImageCardProps {
 }
 
 export const ImageCard = (props: ImageCardProps) => {
-  const { imageSrc, title, description, alignment = "center", index, onClick } = props;
+  const {
+    imageSrc,
+    title,
+    description,
+    alignment = "center",
+    index,
+    onClick,
+  } = props;
 
   const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
     if (!onClick) {
@@ -34,7 +41,9 @@ export const ImageCard = (props: ImageCardProps) => {
       onClick={onClick}
       onKeyDown={handleKeyDown}
       className={`group relative h-full w-full overflow-hidden ${
-        onClick ? "cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-white/80" : ""
+        onClick
+          ? "cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-white/80"
+          : ""
       }`}
     >
       {/* Banner fills entire grid cell */}

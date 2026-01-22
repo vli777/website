@@ -73,13 +73,14 @@ const ImageModal = ({ image, onClose }: ImageModalProps) => {
         </div>
 
         <div className="flex flex-col gap-2 text-white">
-          <h2 id="image-modal-title" className="text-2xl font-semibold tracking-tight">
+          <h2
+            id="image-modal-title"
+            className="text-2xl font-semibold tracking-tight"
+          >
             {image.title}
           </h2>
           {image.description && (
-            <p className="text-base text-gray-300">
-              {image.description}
-            </p>
+            <p className="text-base text-gray-300">{image.description}</p>
           )}
         </div>
       </div>

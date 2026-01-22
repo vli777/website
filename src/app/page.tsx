@@ -47,9 +47,9 @@ const features = [
   },
   {
     icon: GitBranch,
-    title: "Deep Learning Statistical Arbitrage",
+    title: "Deep Statistical Arbitrage",
     description:
-      "A proprietary evolution of the Ordoñez-Pelger-Zanotti framework. We utilize a hybrid TCN-Attention architecture to extract non-linear risk factors and relational alpha at faster speeds for live inference",
+      "A proprietary evolution of the Ordoñez-Pelger-Zanotti framework. We utilize a hybrid TCN-Attention architecture to extract relational alpha at faster speeds optimized for live inference",
   },
   {
     icon: Network,
@@ -61,7 +61,7 @@ const features = [
     icon: Shield,
     title: "Adaptive Risk Controls",
     description:
-      "Move beyond static weights. We apply adaptive fractional Kelly allocation, scaling position sizes with varying distribution moments to align exposure with signal edge",
+      "Move beyond static weights. We apply adaptive fractional Kelly allocation, scaling position sizes with varying distribution moments to align exposure to signal edge",
   },
   {
     icon: Layers,
@@ -85,9 +85,134 @@ const features = [
     icon: TrendingUp,
     title: "Probabilistic Trend Estimation",
     description:
-      "We anchor intraday return density against structural linear regression channels. By applying volatility-adjusted dispersion to our micro-signals, we generate high-fidelity confidence envelopes",
+      "We anchor intraday return density against structural regression channels. By applying volatility-adjusted dispersion to our micro-signals, we generate high-fidelity confidence envelopes",
   },
 ];
+
+// Generate noisy wave path with varying amplitudes
+const generateNoisyWavePath = (baseAmplitude: number, seed: number = 0) => {
+  const points: string[] = [];
+  const width = 400;
+  const midY = 50;
+
+  // Create pseudo-random noise based on seed
+  const noise = (x: number) => {
+    const n = Math.sin(x * 12.9898 + seed * 78.233) * 43758.5453;
+    return n - Math.floor(n);
+  };
+
+  for (let x = 0; x <= width; x += 4) {
+    // Combine multiple frequencies for irregular pattern
+    const wave1 = Math.sin((x / width) * Math.PI * 2 * 2.5) * 0.5;
+    const wave2 = Math.sin((x / width) * Math.PI * 2 * 4.2 + 1.3) * 0.3;
+    const wave3 = Math.sin((x / width) * Math.PI * 2 * 7.1 + 2.1) * 0.2;
+    const randomOffset = (noise(x * 0.02) - 0.5) * 0.4;
+
+    const combined = wave1 + wave2 + wave3 + randomOffset;
+    const y = midY + combined * baseAmplitude;
+    points.push(`${x},${y}`);
+  }
+
+  return `M${points.join(" L")}`;
+};
+
+// Audio signal wave behind text
+const SignalText = ({
+  text,
+  className,
+}: {
+  text: string;
+  className?: string;
+}) => {
+  // Flat line -> spike -> dampen -> settle (different seeds for variety)
+  const waveAnimation = {
+    d: [
+      generateNoisyWavePath(0, 1),
+      generateNoisyWavePath(0, 1),
+      generateNoisyWavePath(28, 2),
+      generateNoisyWavePath(-24, 3),
+      generateNoisyWavePath(18, 4),
+      generateNoisyWavePath(-14, 5),
+      generateNoisyWavePath(10, 6),
+      generateNoisyWavePath(-6, 7),
+      generateNoisyWavePath(3, 8),
+      generateNoisyWavePath(-1.5, 9),
+      generateNoisyWavePath(0, 1),
+      generateNoisyWavePath(0, 1),
+    ],
+  };
+
+  // Glow intensity animation - blue-400 core with blue-600/800 glow
+  const glowAnimation = {
+    filter: [
+      "drop-shadow(0 0 0px rgba(96, 165, 250, 0))",
+      "drop-shadow(0 0 0px rgba(96, 165, 250, 0))",
+      "drop-shadow(0 0 14px rgba(37, 99, 235, 1)) drop-shadow(0 0 6px rgba(96, 165, 250, 0.9)) drop-shadow(0 0 2px rgba(191, 219, 254, 0.8))",
+      "drop-shadow(0 0 12px rgba(37, 99, 235, 0.9)) drop-shadow(0 0 5px rgba(96, 165, 250, 0.8))",
+      "drop-shadow(0 0 10px rgba(37, 99, 235, 0.8)) drop-shadow(0 0 4px rgba(96, 165, 250, 0.7))",
+      "drop-shadow(0 0 7px rgba(37, 99, 235, 0.6)) drop-shadow(0 0 3px rgba(96, 165, 250, 0.5))",
+      "drop-shadow(0 0 5px rgba(37, 99, 235, 0.5))",
+      "drop-shadow(0 0 4px rgba(37, 99, 235, 0.4))",
+      "drop-shadow(0 0 2px rgba(37, 99, 235, 0.25))",
+      "drop-shadow(0 0 1px rgba(37, 99, 235, 0.15))",
+      "drop-shadow(0 0 0px rgba(96, 165, 250, 0))",
+      "drop-shadow(0 0 0px rgba(96, 165, 250, 0))",
+    ],
+    strokeWidth: [1, 1, 2.5, 2.5, 2, 2, 1.8, 1.5, 1.2, 1, 1, 1],
+  };
+
+  return (
+    <span
+      className={className}
+      style={{
+        display: "inline-block",
+        position: "relative",
+      }}
+    >
+      {/* Animated wave behind text */}
+      <svg
+        style={{
+          position: "absolute",
+          left: "0%",
+          top: "50%",
+          width: "100%",
+          height: "300%",
+          transform: "translateY(-50%)",
+          pointerEvents: "none",
+          zIndex: 0,
+          overflow: "visible",
+        }}
+        viewBox="0 0 400 100"
+        preserveAspectRatio="none"
+      >
+        <motion.path
+          fill="none"
+          stroke="rgba(96, 165, 250, 0.8)"
+          initial={{
+            d: generateNoisyWavePath(0, 1),
+            filter: "drop-shadow(0 0 0px rgba(96, 165, 250, 0))",
+            strokeWidth: 1,
+          }}
+          animate={{
+            d: waveAnimation.d,
+            filter: glowAnimation.filter,
+            strokeWidth: glowAnimation.strokeWidth,
+          }}
+          transition={{
+            duration: 5,
+            ease: "easeOut",
+            times: [
+              0, 0.1, 0.12, 0.15, 0.18, 0.22, 0.27, 0.33, 0.4, 0.5, 0.6, 1,
+            ],
+            repeat: Infinity,
+          }}
+        />
+      </svg>
+      {/* Text on top */}
+      <span style={{ position: "relative", zIndex: 1 }}>{text}</span>
+    </span>
+  );
+};
 
 const Home: React.FC = () => {
   const [selectedImage, setSelectedImage] = useState<VisualizationImage | null>(
@@ -259,18 +384,24 @@ const Home: React.FC = () => {
               <h1 className="text-5xl font-bold tracking-tight text-white sm:text-6xl md:text-7xl">
                 Vesta
               </h1>
-              <p className="max-w-2xl text-xl font-bold leading-relaxed text-blue-800 sm:text-2xl">
+              <p
+                className={`max-w-2xl text-xl font-bold leading-relaxed ${cubeRevealed ? "text-blue-700" : "text-blue-800"} sm:text-2xl`}
+              >
                 Institutional-grade quantitative investing
                 <br />
                 <span
-                  className={`${cubeRevealed ? "text-white" : "text-transparent"} font-light`}
+                  className={`${cubeRevealed ? "text-white" : "text-transparent font-light"}`}
                 >
                   For everyone.
                 </span>
               </p>
               <p className="text-sm text-gray-500">
                 Powered by{" "}
-                <span className="text-blue-800 font-medium">Argo</span>
+                <span
+                  className={`${cubeRevealed ? "text-blue-700" : "text-blue-800"} font-medium`}
+                >
+                  Argo
+                </span>
               </p>
             </motion.div>
 
@@ -322,11 +453,10 @@ const Home: React.FC = () => {
                 transition={{ duration: 0.6 }}
                 className="text-base text-gray-400 leading-relaxed md:pt-8"
               >
-                Anyone can throw data into an AI model today, but without a
-                foundation in financial causality, those signals are effectively
-                guesswork, and often already crowded. Our methods are grounded
-                in understanding the three pillars of quantitative investing:
-                finance, statistics, and machine learning.
+                {`Anyone can throw data into an AI model today, but without a
+                foundation in financial causality, those signals aren't much
+                better than guesswork, and often already crowded. Our methods
+                are grounded in financial mathematics for quantified edge.`}
               </motion.p>
 
               <div className="flex flex-col gap-6 md:text-right">
@@ -335,10 +465,10 @@ const Home: React.FC = () => {
                   whileInView={{ opacity: 1, x: 0 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.5 }}
-                  className="text-sm font-black uppercase text-blue-800"
+                  className="text-sm font-black uppercase text-blue-700"
                   style={{ letterSpacing: "-0.02em" }}
                 >
-                  Beyond the hype
+                  Go beyond the hype
                 </motion.p>
 
                 <motion.h2
@@ -356,12 +486,15 @@ const Home: React.FC = () => {
                   whileInView={{ opacity: 1, x: 0 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.5, delay: 0.3 }}
-                  className="text-xl font-black text-[#f5f5f5] leading-[1.1] sm:text-2xl"
+                  className="text-xl font-black text-gray-500 leading-[1.1] sm:text-2xl"
                   style={{ letterSpacing: "-0.05em" }}
                 >
                   We don&apos;t just solve for backtests
                   <br />
-                  We solve for live markets
+                  <SignalText
+                    text="We solve for live markets"
+                    className="text-[#f5f5f5]"
+                  />
                 </motion.h3>
               </div>
             </div>
@@ -375,14 +508,14 @@ const Home: React.FC = () => {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.5, delay: index * 0.05 }}
-                  className="group relative rounded-lg border border-gray-800/50 bg-gradient-to-br from-gray-900/80 to-gray-950/80 p-5 backdrop-blur-sm transition-all duration-300 hover:border-blue-800/50 hover:shadow-[0_0_30px_-5px_rgba(30,64,175,0.2)]"
+                  className="group relative rounded-lg border border-gray-800/50 bg-gradient-to-br from-gray-900/80 to-gray-950/80 p-5 backdrop-blur-sm transition-all duration-300 hover:border-blue-500/50 hover:shadow-[0_0_30px_-5px_rgba(30,64,175,0.2)]"
                 >
                   {/* Subtle glow on hover */}
-                  <div className="absolute inset-0 rounded-lg bg-gradient-to-br from-blue-800/0 to-blue-900/0 opacity-0 transition-opacity duration-300 group-hover:opacity-10" />
+                  <div className="absolute inset-0 rounded-lg bg-gradient-to-br from-blue-700/0 to-blue-300/0 opacity-0 transition-opacity duration-300 group-hover:opacity-10" />
 
                   <div className="relative">
                     <div className="mb-3 flex items-center gap-3">
-                      <div className="flex h-9 w-9 items-center justify-center rounded-md bg-blue-800/20 text-blue-800 transition-colors group-hover:bg-blue-800/30">
+                      <div className="flex h-9 w-9 items-center justify-center rounded-md bg-blue-800/20 text-blue-700 group-hover:text-blue-400 transition-colors group-hover:bg-blue-700/200 duration-300">
                         <feature.icon className="h-5 w-5" />
                       </div>
                       <h3 className="text-base font-semibold text-white">
@@ -411,7 +544,7 @@ const Home: React.FC = () => {
                   whileInView={{ opacity: 1, x: 0 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.5 }}
-                  className="text-sm font-black uppercase text-blue-800"
+                  className="text-sm font-black uppercase text-blue-700"
                   style={{ letterSpacing: "-0.02em" }}
                 >
                   Not another trade copier or LLM bot on indicators.
@@ -478,12 +611,12 @@ const Home: React.FC = () => {
                       placeholder="Enter your email"
                       required
                       disabled={submitStatus === "loading"}
-                      className="flex-1 rounded-lg border border-gray-700 bg-gray-800/80 px-4 py-3 text-white placeholder-gray-500 backdrop-blur-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:opacity-50"
+                      className="flex-1 rounded-lg border border-gray-700 bg-gray-800/80 px-4 py-3 text-white placeholder-gray-500 backdrop-blur-sm focus:border-blue-00 focus:outline-none focus:ring-1 focus:ring-blue-700 disabled:opacity-50"
                     />
                     <button
                       type="submit"
                       disabled={submitStatus === "loading"}
-                      className="rounded-lg bg-blue-800 px-6 py-3 font-medium text-white transition-all hover:bg-blue-500 hover:shadow-lg hover:shadow-blue-500/25 disabled:opacity-50"
+                      className="rounded-lg bg-blue-700 px-6 py-3 font-medium text-gray-400 transition-all hover:text-white hover:shadow-lg hover:shadow-blue-500/25 disabled:opacity-50"
                     >
                       {submitStatus === "loading"
                         ? "Joining..."

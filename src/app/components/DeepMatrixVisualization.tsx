@@ -150,6 +150,10 @@ const DeepMatrixVisualization: React.FC<DeepMatrixVisualizationProps> = ({
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.setClearColor(0x000000, 0);
     renderer.domElement.style.background = 'transparent';
+    renderer.domElement.style.position = 'absolute';
+    renderer.domElement.style.left = '50%';
+    renderer.domElement.style.top = '50%';
+    renderer.domElement.style.transform = 'translate(-50%, -50%)';
     container.appendChild(renderer.domElement);
 
     // Lighting
@@ -607,6 +611,28 @@ const DeepMatrixVisualization: React.FC<DeepMatrixVisualizationProps> = ({
       const limitX = Math.max(bounds.x - marginX, 0);
       const limitY = Math.max(bounds.y - marginY, 0);
 
+      // Spring force to pull cube back toward center when outside bounds
+      const springStrength = 0.1;
+      const softLimitX = limitX * 0.6; // Start pulling back before hard limit
+      const softLimitY = limitY * 0.6;
+
+      if (Math.abs(parentGroup.position.x) > softLimitX) {
+        const overshoot = parentGroup.position.x - Math.sign(parentGroup.position.x) * softLimitX;
+        translationVelocity.x -= overshoot * springStrength * frameFactor;
+      }
+      if (Math.abs(parentGroup.position.y) > softLimitY) {
+        const overshoot = parentGroup.position.y - Math.sign(parentGroup.position.y) * softLimitY;
+        translationVelocity.y -= overshoot * springStrength * frameFactor;
+      }
+
+      // Gentle drift back to center when idle (no active dragging or recent interaction)
+      if (!isDragging && translationVelocity.lengthSq() < 0.01) {
+        const centerPull = 0.002;
+        parentGroup.position.x *= (1 - centerPull * frameFactor);
+        parentGroup.position.y *= (1 - centerPull * frameFactor);
+      }
+
+      // Hard boundary clamp with bounce
       if (parentGroup.position.x > limitX) {
         parentGroup.position.x = limitX;
         translationVelocity.x = -Math.abs(translationVelocity.x) * 0.72;
@@ -779,7 +805,16 @@ const DeepMatrixVisualization: React.FC<DeepMatrixVisualizationProps> = ({
   return (
     <div
       ref={mountRef}
-      style={{ position: 'relative', width: '100%', height: '100%', background: 'transparent' }}
+      style={{
+        position: 'relative',
+        width: '100%',
+        height: '100%',
+        background: 'transparent',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        overflow: 'hidden'
+      }}
     >
       {!isSupported && (
         <div

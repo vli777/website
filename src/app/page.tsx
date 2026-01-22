@@ -261,7 +261,7 @@ const Home: React.FC = () => {
                 Vesta
               </h1>
               <p className="max-w-2xl text-xl font-bold leading-relaxed text-blue-800 sm:text-2xl">
-                Institutional-grade quantitative investing.
+                Institutional-grade quantitative investing
                 <br />
                 <span className="text-white font-light">For everyone.</span>
               </p>
@@ -437,10 +437,10 @@ const Home: React.FC = () => {
                 className="text-base text-gray-400 leading-relaxed md:pt-8"
               >
                 Our mission is the systematic democratization of
-                institutional-grade research. By synthesizing the latest published
-                research with proprietary inventions, we deploy advanced
-                modeling techniques once reserved for the world&apos;s most
-                sophisticated investors.
+                institutional-grade research. By synthesizing the latest
+                published research with proprietary inventions, we deploy
+                advanced modeling techniques once reserved for the world&apos;s
+                most sophisticated investors.
               </motion.p>
             </div>
           </div>

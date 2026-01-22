@@ -61,8 +61,8 @@ const features = [
   {
     icon: Shield,
     title: "Adaptive Risk Controls",
-    description:"Move beyond static weights. We apply adaptive fractional Kelly allocation, scaling position sizes with varying distribution moments to align exposure with signal edge",
-      
+    description:
+      "Move beyond static weights. We apply adaptive fractional Kelly allocation, scaling position sizes with varying distribution moments to align exposure with signal edge",
   },
   {
     icon: Layers,
@@ -295,41 +295,101 @@ const Home: React.FC = () => {
         </div>
 
         {/* Features Section */}
-        <section id="features" className="bg-gray-950 py-24">
-          <div className="mx-auto max-w-6xl px-4">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6 }}
-              className="mb-16 text-center"
-            >
-              <h2 className="mb-4 text-3xl font-bold text-white sm:text-4xl">
-                Powered by Deep Learning
-              </h2>
-              <p className="mx-auto max-w-2xl text-lg text-gray-400">
-                Probabilistic Architectures for Structural Market Asymmetry
-                <br />
-              </p>
-            </motion.div>
+        <section
+          id="features"
+          className="relative bg-[#0a0a0b] py-24 overflow-hidden"
+        >
+          {/* Subtle grid background */}
+          <div
+            className="absolute inset-0 opacity-[0.03]"
+            style={{
+              backgroundImage: `linear-gradient(rgba(30, 64, 175, 0.5) 1px, transparent 1px),
+                              linear-gradient(90deg, rgba(30, 64, 175, 0.5) 1px, transparent 1px)`,
+              backgroundSize: "60px 60px",
+            }}
+          />
 
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="relative mx-auto max-w-5xl px-6">
+            {/* Header - two column layout, reversed from demo */}
+            <div className="grid gap-12 md:grid-cols-[1fr_1.2fr] md:gap-16 items-start mb-16">
+              <motion.p
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6 }}
+                className="text-base text-gray-400 leading-relaxed md:pt-8"
+              >
+                Anyone can throw data into an AI model today, but without a
+                foundation in financial causality, those signals are effectively
+                guesswork, and limited to textbook examples. Our methods are
+                grounded in understanding the three pillars of quantitative
+                investing: finance, statistics, and machine learning.
+              </motion.p>
+
+              <div className="flex flex-col gap-6 md:text-right">
+                <motion.p
+                  initial={{ opacity: 0, x: 20 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.5 }}
+                  className="text-sm font-black uppercase text-blue-800"
+                  style={{ letterSpacing: "-0.02em" }}
+                >
+                  Beyond the hype
+                </motion.p>
+
+                <motion.h2
+                  initial={{ opacity: 0, x: 20 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.5, delay: 0.1 }}
+                  className="text-3xl font-black text-[#f5f5f5] leading-[1.1] sm:text-4xl"
+                  style={{ letterSpacing: "-0.05em" }}
+                >
+                  Powered by Deep Learning
+                </motion.h2>
+                <motion.h3
+                  initial={{ opacity: 0, x: 20 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.5, delay: 0.3 }}
+                  className="text-xl font-black text-[#f5f5f5] leading-[1.1] sm:text-2xl"
+                  style={{ letterSpacing: "-0.05em" }}
+                >
+                  We don&apos;t just solve for backtests
+                  <br />
+                  We solve for live markets
+                </motion.h3>
+              </div>
+            </div>
+
+            {/* Feature cards */}
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {features.map((feature, index) => (
                 <motion.div
                   key={feature.title}
                   initial={{ opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
-                  transition={{ duration: 0.5, delay: index * 0.1 }}
-                  className="group rounded-xl border border-gray-800 bg-gray-800/50 p-6 transition-all hover:border-blue-500/50 hover:bg-gray-800"
+                  transition={{ duration: 0.5, delay: index * 0.05 }}
+                  className="group relative rounded-lg border border-gray-800/50 bg-gradient-to-br from-gray-900/80 to-gray-950/80 p-5 backdrop-blur-sm transition-all duration-300 hover:border-blue-800/50 hover:shadow-[0_0_30px_-5px_rgba(30,64,175,0.2)]"
                 >
-                  <feature.icon className="mb-4 h-10 w-10 text-blue-800 transition-transform group-hover:scale-110" />
-                  <h3 className="mb-2 text-lg font-semibold text-white">
-                    {feature.title}
-                  </h3>
-                  <p className="text-sm leading-relaxed text-gray-400">
-                    {feature.description}
-                  </p>
+                  {/* Subtle glow on hover */}
+                  <div className="absolute inset-0 rounded-lg bg-gradient-to-br from-blue-800/0 to-blue-900/0 opacity-0 transition-opacity duration-300 group-hover:opacity-10" />
+
+                  <div className="relative">
+                    <div className="mb-3 flex items-center gap-3">
+                      <div className="flex h-9 w-9 items-center justify-center rounded-md bg-blue-800/20 text-blue-800 transition-colors group-hover:bg-blue-800/30">
+                        <feature.icon className="h-5 w-5" />
+                      </div>
+                      <h3 className="text-base font-semibold text-white">
+                        {feature.title}
+                      </h3>
+                    </div>
+                    <p className="text-sm leading-relaxed text-gray-500 group-hover:text-gray-400 transition-colors">
+                      {feature.description}
+                    </p>
+                  </div>
                 </motion.div>
               ))}
             </div>
@@ -348,7 +408,7 @@ const Home: React.FC = () => {
                   whileInView={{ opacity: 1, x: 0 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.5 }}
-                  className="text-sm font-black uppercase text-cyan-400"
+                  className="text-sm font-black uppercase text-blue-800"
                   style={{ letterSpacing: "-0.02em" }}
                 >
                   Not another trade copier or LLM bot on indicators.
@@ -377,10 +437,10 @@ const Home: React.FC = () => {
                 className="text-base text-gray-400 leading-relaxed md:pt-8"
               >
                 Our mission is the systematic democratization of
-                institutional-grade research. By synthesizing SOTA published
-                research with proprietary inventions, we deploy 
-                advanced modeling techniques once reserved for the world&apos;s
-                most sophisticated investors.
+                institutional-grade research. By synthesizing the latest published
+                research with proprietary inventions, we deploy advanced
+                modeling techniques once reserved for the world&apos;s most
+                sophisticated investors.
               </motion.p>
             </div>
           </div>
@@ -409,13 +469,11 @@ const Home: React.FC = () => {
               transition={{ duration: 0.6 }}
               className="flex flex-col items-center gap-8"
             >
-                 <p className="text-lg text-gray-400">
-                Development in Progress.
-              </p>
+              <p className="text-lg text-gray-400">Development in Progress.</p>
 
               {submitStatus === "success" ? (
-                <p className="text-lg text-green-400">
-                  You&apos;re on the list. We&apos;ll be in touch.
+                <p className="text-lg text-gray-300">
+                  Success. You&apos;re on the waitlist.
                 </p>
               ) : (
                 <>

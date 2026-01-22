@@ -782,7 +782,8 @@ const DeepMatrixVisualization: React.FC<DeepMatrixVisualizationProps> = ({
     inertiaDecay,
     maxRotationVelocity,
     autoRotationSpeed,
-    autoRotationJitter
+    autoRotationJitter,
+    connectionColor
   ]);
 
   useEffect(() => {

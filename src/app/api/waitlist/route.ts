@@ -1,6 +1,10 @@
-import { sql } from "@vercel/postgres";
+import postgres from "postgres";
 import { NextResponse } from "next/server";
 import { headers } from "next/headers";
+
+const sql = postgres(process.env.POSTGRES_URL!, {
+  ssl: "require",
+});
 
 // Simple in-memory rate limiter (resets on cold start, but good enough for basic protection)
 const rateLimitMap = new Map<string, { count: number; resetTime: number }>();

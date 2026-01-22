@@ -38,19 +38,19 @@ const features = [
     icon: Brain,
     title: "Volatility Forecasting",
     description:
-      "Heterogeneous volatility modeling utilizing deep-gated features to isolate structural regimes. We incorporate the Engle (NYU) DCC-NL framework for large-scale dynamic covariance estimation",
+      "Heterogeneous volatility modeling utilizing deep-gated features to isolate structural regimes. We incorporate the Engle (NYU) DCC-NL framework for dynamic covariance estimation",
   },
   {
     icon: Activity,
     title: "Regime Detection",
     description:
-      "Proprietary autoencoder-driven detection engineered to outperform current MoE Jump frameworks (Yu, Mulvey, Kolm 2025) in training throughput by delivering 9x faster recalibration with minimal detection lag",
+      "Proprietary autoencoder-driven detection with 9x faster training vs current MoE Jump frameworks (Yu, Mulvey, Kolm 2025) with minimal reduction in detection lead",
   },
   {
     icon: GitBranch,
     title: "Deep Learning Statistical Arbitrage",
     description:
-      "A proprietary evolution of the Ordoñez-Pelger-Zanotti framework. We utilize a hybrid TCN-Attention architecture to extract non-linear risk factors and relational alpha at speeds necessary for live market inference",
+      "A proprietary evolution of the Ordoñez-Pelger-Zanotti framework. We utilize a hybrid TCN-Attention architecture to extract non-linear risk factors and relational alpha at faster speeds for live inference",
   },
   {
     icon: Network,
@@ -74,19 +74,19 @@ const features = [
     icon: Search,
     title: "Anomaly Detection",
     description:
-      "Beyond Kalman Filters: We hybridize graph and transformer architectures to detect anomalies via association discrepancy. Using temporal gating, our engine isolates structural breakdowns without needing manual tuning",
+      "Beyond Kalman Filters: We hybridize graph and transformer architectures to detect anomalies via association discrepancy and temporal gating without needing manual tuning",
   },
   {
     icon: Zap,
     title: "Time Series Inference",
     description:
-      "Through a heterogeneous ensemble of recurrent and dilated temporal layers, we process 1,000+ engineered features to capture non-linear, multi-scale dependencies while enforcing zero look-ahead bias",
+      "Through a heterogeneous ensemble of recurrent and dilated temporal layers, we process 1,000+ engineered features to capture non-linear, multi-scale dependencies without look-ahead bias",
   },
   {
     icon: TrendingUp,
     title: "Probabilistic Trend Estimation",
     description:
-      "We anchor intraday return density against structural linear regression channels. By applying volatility-adjusted dispersion to our probabilistic micro-signals, we generate high-fidelity confidence envelopes",
+      "We anchor intraday return density against structural linear regression channels. By applying volatility-adjusted dispersion to our micro-signals, we generate high-fidelity confidence envelopes",
   },
 ];
 
@@ -321,9 +321,9 @@ const Home: React.FC = () => {
               >
                 Anyone can throw data into an AI model today, but without a
                 foundation in financial causality, those signals are effectively
-                guesswork, and limited to textbook examples. Our methods are
-                grounded in understanding the three pillars of quantitative
-                investing: finance, statistics, and machine learning.
+                guesswork, and often already crowded. Our methods are grounded
+                in understanding the three pillars of quantitative investing:
+                finance, statistics, and machine learning.
               </motion.p>
 
               <div className="flex flex-col gap-6 md:text-right">

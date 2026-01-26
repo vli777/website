@@ -43,7 +43,7 @@ const features = [
     icon: Activity,
     title: "Regime Detection",
     description:
-      "Proprietary autoencoder-driven detection with 9x faster training vs current MoE Jump frameworks (Yu, Mulvey, Kolm 2025) with minimal reduction in detection lead",
+      "Proprietary autoencoder-driven structural anomaly early-warning detection with 9x faster training vs MoE-style Deep Statistical Jump Models (Yu, Mulvey, Kolm 2025) with comparable ROC-AUC and PR-AUC",
   },
   {
     icon: GitBranch,

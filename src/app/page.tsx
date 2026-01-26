@@ -61,13 +61,13 @@ const features = [
     icon: Shield,
     title: "Adaptive Risk Controls",
     description:
-      "Move beyond static weights. We apply adaptive fractional Kelly allocation, scaling position sizes with varying distribution moments to align exposure to signal edge",
+      "Move beyond static weights. We apply adaptive fractional Kelly allocation, scaling position sizes with varying distribution moments to dynamically align exposure to signal edge",
   },
   {
     icon: Layers,
     title: "Hierarchical Optimization",
     description:
-      "Textbook models stop where constraints begin. We've figured out a way to evolve López de Prado and Dalio's work to solve risk constraints without breaking cluster geometry",
+      "Textbook models stop where constraints begin. We've developed an optimization engine inspired by López de Prado and Dalio that solves risk constraints without breaking cluster geometry",
   },
   {
     icon: Search,

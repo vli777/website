@@ -453,10 +453,11 @@ const Home: React.FC = () => {
                 transition={{ duration: 0.6 }}
                 className="text-base text-gray-400 leading-relaxed md:pt-8"
               >
-                {`Anyone can throw data into an AI model today, but without a
-                foundation in financial causality, those signals aren't much
-                better than guesswork, and often already crowded. Our methods
-                are grounded in financial mathematics for quantified edge.`}
+                {`Anyone can throw data into an AI model, but without a foundation in financial causality, 
+                most signals are merely reflections of events already priced in. We move beyond reactive heuristics  
+                to identify the structural risk premiums and causal drivers that define market states. By applying 
+                multi-dimensional inference to isolate these features, we identify not just the setup, but the tactical 
+                triggers required to capture a truly quantified edge.`}
               </motion.p>
 
               <div className="flex flex-col gap-6 md:text-right">

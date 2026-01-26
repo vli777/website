@@ -500,11 +500,11 @@ const DeepMatrixVisualization: React.FC<DeepMatrixVisualizationProps> = ({
       const dt = Math.max((now - pointerTimeRef.current) / 1000, 1 / 240);
       pointerTimeRef.current = now;
       const pixelSpeed = Math.hypot(deltaX, deltaY) / dt;
-      const baseImpulse = 0.055;
-      const speedBoost = Math.min(pixelSpeed * 0.002, 2.7);
-      const angleFactor = Math.min(1.8, speedBoost + 0.4);
-      rotationVelocity.y += deltaX * 0.0012 * angleFactor;
-      rotationVelocity.x += deltaY * 0.0012 * angleFactor;
+      const baseImpulse = 0.025;
+      const speedBoost = Math.min(pixelSpeed * 0.0008, 1.2);
+      const angleFactor = Math.min(1.2, speedBoost + 0.3);
+      rotationVelocity.y += deltaX * 0.0006 * angleFactor;
+      rotationVelocity.x += deltaY * 0.0006 * angleFactor;
       if (rotationVelocity.length() > maxSpinMagnitude) {
         rotationVelocity.setLength(maxSpinMagnitude);
       }
@@ -847,6 +847,10 @@ const DeepMatrixVisualization: React.FC<DeepMatrixVisualizationProps> = ({
       parentGroupRef.current = null;
       parentGroupRef.current = null;
     };
+  // Note: connectionColor is intentionally excluded from dependencies since it's
+  // handled via connectionColorRef to allow smooth color transitions without
+  // recreating the entire Three.js scene
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     stackCount,
     layerCount,
@@ -865,7 +869,6 @@ const DeepMatrixVisualization: React.FC<DeepMatrixVisualizationProps> = ({
     maxRotationVelocity,
     autoRotationSpeed,
     autoRotationJitter,
-    connectionColor,
   ]);
 
   useEffect(() => {

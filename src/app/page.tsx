@@ -453,11 +453,9 @@ const Home: React.FC = () => {
                 transition={{ duration: 0.6 }}
                 className="text-base text-gray-400 leading-relaxed md:pt-8"
               >
-                {`Anyone can throw data into an AI model, but without a foundation in financial causality, 
-                most signals are merely reflections of events already priced in. We move beyond reactive heuristics  
-                to identify the structural risk premiums and causal drivers that define market states. By applying 
-                multi-dimensional inference to isolate these features, we identify not just the setup, but the tactical 
-                triggers required to capture a truly quantified edge.`}
+                {`Without financial causality and statistical rigor, signals are merely crowded reflections of events already priced in. 
+                We move beyond reactive heuristics to synthesize proprietary inventions with institutional-grade research, 
+                transforming market setups into optimized tactical positioning.`}
               </motion.p>
 
               <div className="flex flex-col gap-6 md:text-right">
@@ -480,23 +478,9 @@ const Home: React.FC = () => {
                   className="text-3xl font-black text-[#f5f5f5] leading-[1.1] sm:text-4xl"
                   style={{ letterSpacing: "-0.05em" }}
                 >
-                  Powered by Deep Learning
+                  Anyone can throw data into an AI model—but intelligence is
+                  only as strong as its foundations.
                 </motion.h2>
-                <motion.h3
-                  initial={{ opacity: 0, x: 20 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.5, delay: 0.3 }}
-                  className="text-xl font-black text-gray-500 leading-[1.1] sm:text-2xl"
-                  style={{ letterSpacing: "-0.05em" }}
-                >
-                  We don&apos;t just solve for backtests
-                  <br />
-                  <SignalText
-                    text="We solve for live markets"
-                    className="text-[#f5f5f5]"
-                  />
-                </motion.h3>
               </div>
             </div>
 
@@ -593,7 +577,21 @@ const Home: React.FC = () => {
               transition={{ duration: 0.6 }}
               className="flex flex-col items-center gap-8"
             >
-              <p className="text-lg text-gray-400">Development in Progress.</p>
+              <motion.h3
+                initial={{ opacity: 0, x: 20 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: 0.3 }}
+                className="text-xl font-black text-gray-500 leading-[1.1] sm:text-xl"
+                style={{ letterSpacing: "-0.05em" }}
+              >
+                We don&apos;t just solve for backtests
+                <br />
+                <SignalText
+                  text="We solve for live markets"
+                  className="text-[#f5f5f5]"
+                />
+              </motion.h3>
 
               {submitStatus === "success" ? (
                 <p className="text-lg text-gray-300">

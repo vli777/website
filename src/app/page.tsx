@@ -632,6 +632,17 @@ const Home: React.FC = () => {
                   <p className="text-sm text-gray-400">
                     We&apos;ll notify you when we launch.
                   </p>
+                  <p className="mt-2 text-xs text-gray-600 max-w-md">
+                    By joining, you agree to our{" "}
+                    <a
+                      href="/privacy"
+                      className="text-gray-500 underline hover:text-gray-400"
+                    >
+                      Privacy Policy
+                    </a>
+                    . We only use your email to send project updates and
+                    Alpha/Beta invites. You can opt out at any time.
+                  </p>
                 </>
               )}
             </motion.div>
@@ -646,8 +657,35 @@ const Home: React.FC = () => {
                 <span className="text-xl font-bold text-white">Vesta</span>
                 <span className="text-xs text-gray-600">powered by Argo</span>
               </div>
-              <p className="text-sm text-gray-500">
-                © {new Date().getFullYear()} Vesta. All rights reserved.
+              <div className="flex items-center gap-4">
+                <a
+                  href="/privacy"
+                  className="text-sm text-gray-500 hover:text-gray-400 transition-colors"
+                >
+                  Privacy Policy
+                </a>
+                <p className="text-sm text-gray-500">
+                  © {new Date().getFullYear()} Vesta. All rights reserved.
+                </p>
+              </div>
+            </div>
+
+            {/* Pre-Release Notice & Legal */}
+            <div className="mt-8 border-t border-gray-800/50 pt-6 space-y-4">
+              <p className="text-xs text-gray-600">
+                <span className="font-semibold text-gray-500">
+                  Pre-Release Notice:
+                </span>{" "}
+                Vesta is currently in development and live testing, and is not 
+                available for public use. Features described are subject to change. 
+                Waitlist members will be notified of opportunities for complimentary
+                alpha/beta testing access.
+              </p>
+              <p className="text-xs text-gray-600">
+                Vesta is an informational software tool provided for educational
+                purposes only. It does not provide investment advice, does not
+                execute trades, and is not a recommendation to buy or sell
+                securities. Backend services provided by Argo.
               </p>
             </div>
           </div>

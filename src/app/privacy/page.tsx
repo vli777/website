@@ -113,14 +113,14 @@ export default function PrivacyPage() {
             </h2>
             <p className="text-gray-400 mb-6">
               Enter your email address below to be removed from our waitlist.
-              This action is immediate and cannot be undone.
+              Your request will be timestamped and honored immediately.
             </p>
 
             {status === "success" ? (
               <div className="rounded-lg border border-green-800 bg-green-900/20 p-4">
                 <p className="text-green-400">
-                  Your request has been processed. You have been removed from
-                  our waitlist.
+                  Your request has been processed. If this email was on our
+                  waitlist, it has been removed.
                 </p>
               </div>
             ) : (

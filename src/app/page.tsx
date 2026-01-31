@@ -61,7 +61,7 @@ const features = [
     icon: Shield,
     title: "Adaptive Risk Controls",
     description:
-      "Move beyond static weights. We apply adaptive fractional Kelly allocation, scaling position sizes with varying distribution moments to dynamically align exposure to signal edge",
+      "Move beyond static weights. We apply adaptive fractional Kelly allocation, scaling position sizes with varying distribution moments to dynamically align exposure to signal edge.",
   },
   {
     icon: Layers,
@@ -85,7 +85,7 @@ const features = [
     icon: TrendingUp,
     title: "Probabilistic Trend Estimation",
     description:
-      "We anchor intraday return density against structural regression channels. By applying volatility-adjusted dispersion to our micro-signals, we generate high-fidelity confidence envelopes",
+      "We anchor intraday return density against structural regression channels. By applying volatility-adjusted dispersion to our micro-signals, we generate high-fidelity confidence envelopes.",
   },
 ];
 

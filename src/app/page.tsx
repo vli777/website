@@ -37,7 +37,7 @@ const features = [
     icon: Brain,
     title: "Volatility Forecasting",
     description:
-      "Heterogeneous volatility modeling utilizing deep-gated features to isolate structural regimes. We incorporate the Engle (NYU) DCC-NL framework for dynamic covariance estimation",
+      "Heterogeneous volatility modeling utilizes deep-gated features and the 'Risk Everywhere' (Bollerslev et al.) framework to isolate regimes. We incorporate Engle’s (NYU) DCC-NL for dynamic covariance estimation.",
   },
   {
     icon: Activity,

@@ -55,7 +55,7 @@ const features = [
     icon: Network,
     title: "Graph Neural Networks",
     description:
-      "Proprietary GNNs isolate latent asset dependencies for high-conviction signaling; demonstrated up to 2x IC improvement over live DLSA models on identical feature datasets with robust t-stat consistency.",
+      "Proprietary GNNs isolate latent asset dependencies for high-conviction signaling; demonstrated up to 2x IC improvement over live DLSA production models on identical feature datasets with robust t-statistics.",
   },
   {
     icon: Shield,
@@ -73,7 +73,7 @@ const features = [
     icon: Search,
     title: "Anomaly Detection",
     description:
-      "Hybridizing Graph architecture (Google et al. 2019) with multi-step temporal gating to isolate structural breaks. This distinguishes systemic shifts from isolated manipulation and temporal dispersion without manual KF recalibration.",
+      "Hybridizing Graph architecture (Veličković et al. 2019) with multi-step temporal gating to isolate structural breaks. This distinguishes systemic shifts from isolated manipulation and temporal dispersion without KF recalibration.",
   },
   {
     icon: Zap,

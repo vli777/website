@@ -5,18 +5,8 @@ import dynamic from "next/dynamic";
 import { motion } from "framer-motion";
 // import imageData from "./imageData.json";
 import ImageModal from "./components/ImageModal";
-import {
-  Brain,
-  Activity,
-  GitBranch,
-  Network,
-  Shield,
-  Layers,
-  Search,
-  ChevronDown,
-  Zap,
-  TrendingUp,
-} from "lucide-react";
+import { ChevronDown } from "lucide-react";
+import { features } from "./features";
 
 const DeepMatrixVisualization = dynamic(
   () => import("./components/DeepMatrixVisualization"),
@@ -31,63 +21,6 @@ type VisualizationImage = {
 };
 
 // const typedImages = imageData as VisualizationImage[];
-
-const features = [
-  {
-    icon: Brain,
-    title: "Volatility Forecasting",
-    description:
-      "Heterogeneous volatility modeling utilizes deep-gated features and AQR's 'Risk Everywhere' (Bollerslev, Pedersen, et al.) framework to isolate regimes. We incorporate Engle's (NYU, 2019) DCC-NL for dynamic covariance estimation.",
-  },
-  {
-    icon: Activity,
-    title: "Regime Detection",
-    description:
-      "Proprietary contrastive-hybrid autoencoders (Rusak et al. 2024) for early-warning detection; 9x faster training vs MoE-style Deep Statistical Jump Models (Yu, Mulvey, Kolm 2025) with comparable ROC-AUC and PR-AUC.",
-  },
-  {
-    icon: GitBranch,
-    title: "Deep Statistical Arbitrage",
-    description:
-      "A proprietary evolution of the Ordoñez-Pelger-Zanotti (2025) framework. We utilize a hybrid TCN-Attention architecture to extract relational alpha at speeds optimized for live inference.",
-  },
-  {
-    icon: Network,
-    title: "Graph Neural Networks",
-    description:
-      "Proprietary GNNs isolate latent asset dependencies for high-conviction signaling; demonstrated up to 2x IC improvement over live DLSA production models on identical feature datasets with robust t-statistics.",
-  },
-  {
-    icon: Shield,
-    title: "Adaptive Risk Controls",
-    description:
-      "Move beyond static weights. We apply adaptive fractional Kelly allocation, scaling position sizes with varying distribution moments to dynamically align exposure to signal edge.",
-  },
-  {
-    icon: Layers,
-    title: "Hierarchical Optimization",
-    description:
-      "Textbook models stop where constraints begin. We've developed an optimization engine inspired by López de Prado (2020) and Dalio (2017) that solves complex risk constraints without breaking the underlying cluster geometry.",
-  },
-  {
-    icon: Search,
-    title: "Anomaly Detection",
-    description:
-      "Hybridizing Graph architecture (Veličković et al. 2019) with multi-step temporal gating to isolate structural breaks. This distinguishes systemic shifts from isolated manipulation and temporal dispersion without KF recalibration.",
-  },
-  {
-    icon: Zap,
-    title: "Time Series Inference",
-    description:
-      "Through a heterogeneous ensemble of recurrent and dilated layers, we process 1,000+ features to capture multi-scale dependencies. This provides a dynamic signal tilt that matures alongside purely model-driven inference reliability.",
-  },
-  {
-    icon: TrendingUp,
-    title: "Probabilistic Trend Estimation",
-    description:
-      "We anchor intraday return density against structural regression channels. By applying volatility-adjusted dispersion to our micro-signals, we generate high-fidelity confidence envelopes.",
-  },
-];
 
 // Generate noisy wave path with varying amplitudes
 const generateNoisyWavePath = (baseAmplitude: number, seed: number = 0) => {
@@ -676,10 +609,10 @@ const Home: React.FC = () => {
                 <span className="font-semibold text-gray-500">
                   Pre-Release Notice:
                 </span>{" "}
-                Vesta is currently in development and live testing, and is not 
-                available for public use. Features described are subject to change. 
-                Waitlist members will be notified of opportunities for complimentary
-                alpha/beta testing access.
+                Vesta is currently in development and live testing, and is not
+                available for public use. Features described are subject to
+                change. Waitlist members will be notified of opportunities for
+                complimentary alpha/beta testing access.
               </p>
               <p className="text-xs text-gray-600">
                 Vesta is an informational software tool provided for educational

@@ -57,7 +57,7 @@ export const features = [
     icon: Zap,
     title: "Time Series Inference",
     description:
-      "A heterogeneous ensemble of recurrent and dilated layers processes 1,000+ features to capture multi-scale dependencies. This provides a dynamic signal tilt that matures with model-driven inference reliability.",
+      "A heterogeneous ensemble of recurrent and dilated layers capturing multi-scale dependencies. Designed for online RL integration, this enables continuous refinement by learning from realized market ground-truth.",
   },
   {
     icon: TrendingUp,
